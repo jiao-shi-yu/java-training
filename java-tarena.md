@@ -647,7 +647,7 @@ System.out.println(max); //8
 
 - 顺序结构：从上到下，逐行执行每个语句。
 - 分支结构：根据条件，执行相应语句。
-- 循环结构：循环执行，某条语句。
+- 循环结构：有条件地多次执行语句。
 
 ###### if结构
 
@@ -729,70 +729,205 @@ System.out.println("over");
 
 **Scanner**是Java提供的一个工具，可以接受用户输入的数据。
 
+使用**Scanner**的步骤:
+
+	1. 导包
+	1. 实例化一个 scanner 对象。
+	1. 调用方法，扫描用户输入。
+
+```java
+package day04;
+import java.util.Scanner;
+
+public class ScannerDemo {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("请输入年龄：");
+        int age = scan.nextInt();
+        System.out.println("年龄为:"+age);
+        System.out.println("请输入商品价格：");
+        double price = scan.nextDouble();
+        System.out.println("商品价格为："+price);
+    }
+}
+```
+
 
 
 #### 二、分支结构(续)
 
+##### if - else if - else结构
+
+**语法**：
+
+```java
+if (boolean1) {
+  
+} else if(boolean2){
+	
+} else if(boolean3){
+  
+}
+```
+
+**执行过程**：
+
+- 先判单`boolean1`,若为`true`,则执行if后的语句块，然后结束分支结构。
+
+- 若`boolean1`为`false`,则判断`boolean2`,`boolean2`为`true`则执行其后面的语句块。否则继续判断`boolean3`，以此类推。
+
+**代码示例**：
+
+```java
+  Scanner scanner = new Scanner(System.in);
+  System.out.println("请输入成绩：");
+  double score = scanner.nextDouble();
+  System.out.println("成绩为："+score);
+
+  if (score>=90) {
+      System.out.println("A——优秀");
+  } else if (score>=80) {
+      System.out.println("B——良好");
+  } else if (score>=60){
+      System.out.println("C——中等");
+  } else {
+      System.out.println("D——不及格");
+  }
+```
 
 
 
+##### switch - case 结构
+
+switch - case 结构，跟if-else if结构类似，多条路走一条。
+
+优点：效率高速度快，结构清晰。
+
+缺点：只能判断整数。
+
+代码示例：
+
+```java
+int num = 2;
+/*
+switch 一开始只能对整型进行判断，jdk1.7后开始支持了byte,short,char,String
+ */
+switch (num) {
+    case 1: //(if num == 1)
+        System.out.println("case 1");
+        break;
+    case 2:// 入口
+        System.out.println("case 2");
+        // 需要break跳出switch,不然后面都会执行
+        break;
+    case 3:
+        System.out.println("case 3");
+        break;
+    default:
+        System.out.println("default case");
+}
+```
 
 #### 三、循环结构
 
 ##### while 循环
 
-- 语法：
+反复执行一段相同或相似的代码。
 
-```
+###### 语法：
+
+```java
 T 循环变量;
-while (循环条件) {
-    循环体
+while (循环条件) { // 判断循环条件，多次
+    循环体    // 执行循环体
     更新循环变量;
 }
 ```
 
-- 执行过程：
-  1. 先判断是否满足循环条件
-  2. 是，则执行循环体
-  3. 更新循环变量
-  4. 再次判断条件
-- 示例：
+###### 执行过程：
 
-```
-public class WhileDemo {
-    public static void main(String[] args) {
-        /**
-         * 输出 10 次“行动是成功的阶梯”
-         */
-        int times = 0;          // 1. 循环变量的初始化
-        while (times < 10) {    // 2. 循环条件
-            System.out.println("行动是成功的阶梯"+(++times));
-            //times ++;             // 3. 循环变量的改变
-        }
-        System.out.println("Over");
+1. 先判断是否满足循环条件
+2. 是，则执行循环体
+3. 更新循环变量
+4. 再次判断条件
 
-        /**
-         * 在控制台输出 9x9 乘法表
-         */
-        int a = 1, b;
-        while (a <= 9) {
-            b = 1;
-            while (b <= a) {
-                System.out.print(b + " * " + a + " = " + a*b + "\t");
-                b ++;
-            }
-            System.out.println();
-            a++;    
-        }
+###### 示例代码：
+
+```java
+/*
+示例1：使用while循环,输出5次行动是成功的阶梯
+ */
+int times = 0;      // 循环变量的声明
+while (times < 5) { // 循环条件的判断
+    System.out.println("行动是成功的阶梯"); // 循环体的执行
+    times++;        // 循环变量的更新
+}
+System.out.println("over");
+/*
+示例2: 在控制台输出九九乘法表
+分析：横着打印，共9行， 每行从1开始，最大到行号
+ */
+int a = 1, b;
+while (a <= 9) { // 行
+    b = 1;
+    while (b <= a) { // 1 * 9  = 1, 2 * 9 = 18, ...... 注意b可以等于a
+        System.out.print( b + " * " + a +" = " + a*b +"\t");
+        // 循环变量，不要忘了加一
+        b ++ ;
     }
+    // 打印完一行，换行
+    System.out.println();
+    // 外层循环变量也不要忘了加一
+    a ++ ;
 }
 ```
 
-### do-while 循环
+###### 猜数字游戏
 
-- 语法：
+系统随机选取一定范围内(如1~1000)的一个数字，要求用户输入猜想的数字，返回给用户猜测的结果偏大还是偏小，并记录尝试的次数。重复此过程，直到用户猜测正确。
 
+
+
+> ###### 生成随机数
+>
+> `Math.random()`生成一个**double**类型的随机数，范围是[0,1)。
+>
+> 则 Math.random() * 1000,  范围是[0,1000), 
+>
+> (int)（Math.random() * 1000）是整数0到999. 
+>
+> (int)（Math.random() * 1000）+ 1, 就是1到1000的整数.
+
+```java
+int theRightNumber = (int) (Math.random() * 1000) + 1; // 1到1000中的一个整数
+
+int timesTried = 0;
+System.out.println("在1-1000范围内，系统选择了一个整数，现在请你猜测这个整数：");
+Scanner scanner = new Scanner(System.in);
+int userGuessingNumber = scanner.nextInt();
+timesTried ++;
+while (userGuessingNumber != theRightNumber) {
+    if (userGuessingNumber < theRightNumber) {
+        System.out.println("你猜的数字太小了");
+    } else {
+        System.out.println("你猜的数字太大了");
+    }
+    System.out.println("请继续猜：");
+    userGuessingNumber = scanner.nextInt();
+    timesTried ++;
+}
+System.out.println("恭喜你猜对了！ 数字确实是" + theRightNumber + "，一共猜了" + timesTried + "次。");
 ```
+
+
+
+
+
+##### do-while 循环
+
+###### 语法：
+
+```java
 T 循环变量;
 do {
     循环体
@@ -800,22 +935,82 @@ do {
 } while (循环条件);
 ```
 
-- 执行过程：
-  1. 先执行循环体
-  2. 更新循环变量
-  3. 然后判断条件
-  4. 如果条件成立，则再次执行循环体
-- 示例：
+###### 执行过程：
 
-### For Loop
+1. 先执行循环体
+2. 更新循环变量
+3. 然后判断条件
+4. 如果条件成立，则再次执行循环体
 
-for循环
+###### while循环与do...while循环辨析
 
-### Enhanced For Loop
+- while循环：先判断后执行，有可能一次都不执行。
+- do...while循环：先执行后判断，至少执行一次。
 
-增强型 for 循环，是 JDK 5 退出的，通常用于遍历集合或数组。
+###### 示例代码: 用do-while循环重构Guessing猜数字游戏
+
+```java
+int theRightNumber = (int) (Math.random() * 1000) + 1; // 1到1000中的一个整数
+// 作弊
+//        System.out.println(theRightNumber);
+int timesTried = 0;
+System.out.println("在1-1000范围内，系统选择了一个整数，现在请你猜测这个整数：");
+Scanner scanner = new Scanner(System.in);
+int userGuessingNumber;
+do {
+   userGuessingNumber = scanner.nextInt();
+   timesTried++;
+   if (userGuessingNumber == theRightNumber) {
+       System.out.println("恭喜你猜对了！ 数字确实是" + theRightNumber + "，一共猜了" + timesTried + "次。");
+   } else if (userGuessingNumber < theRightNumber) {
+       System.out.println("你猜的数字太小了");
+   } else {
+       System.out.println("你猜的数字太大了");
+   }
+} while (userGuessingNumber != theRightNumber);
 
 ```
+
+
+
+> 变量的作用域/范围：从变量的声明开始，直到包含它的右花括号为止。
+
+
+
+
+
+### day05 循环结构(续)、数组
+
+#### 一、循环结构(续)
+
+##### for 循环
+
+for 循环是最常用的一种循环结构，它最明显的特点是：与次数相关。
+
+###### 循环结束的情况有两种
+
+- 循环条件为假
+- 碰到 break 语句
+
+###### break 与 continue 的辨析
+
+`continue`跳过循环体中剩余语句，进入下一次循环。`break`终止整个循环。
+
+##### 嵌套循环
+
+循环中套循环，一般多行多列时使用，外层循环控制行，内层循环控制列。
+
+外层循环走一次，内层循环走完所有次。
+
+循环嵌套的层数不宜过多，过多说明设计有问题。
+
+> `break`只能打破一层循环。
+
+##### 增强型 for 循环
+
+**enhanced for loop**，有的叫**for-each**循环。中文译作：增强型 for 循环，是 JDK 5 退出的，通常用于遍历集合或数组。
+
+```java
 package day05;
 
 public class EnhancedForLoopDemo {
@@ -826,44 +1021,27 @@ public class EnhancedForLoopDemo {
         }
     }
 }
-/**Output:
-Three
-Two
-One
-Ready~
-Go!
-*/
 ```
 
-## 循环结束的情况有两种
-
-- 循环条件为假
-- 碰到 break 语句
-
-## 生成随机数
-
-`Math.random()`生成[0, 1)的一个随机数。
-
-## 死循环：循环条件永远不为 false，将会一直执行下去的循环。会导致内存溢出，一定要避免。
+> 死循环：循环条件永远不为 false，将会一直执行下去的循环。会导致内存溢出，一定要避免。
 
 
 
 
 
-# 数组
+#### 二、数组
 
-- 数组是一种引用数据类型
-- 相同类型元素的集合
+数组属于引用数据类型，它是相同数据类型的元素的集合。
 
-## 声明数组
+##### 声明数组
 
 `int[] arr = new int[10];` // 声明整形数组 arr, 包含 10 个元素，每个元素都是 int 类型。用 0 来填充。
 
-## 初始化数组
+##### 初始化数组
 
 初始化数组中的元素。
 
-```
+```java
 int[] arr = new int[3];
 int[] arr2 = {1, 4, 7};
 int[] arr3 = new int[]{1, 4, 7};
@@ -874,26 +1052,26 @@ int[] arr4;
 arr4 = new int[]{1, 4, 7};
 ```
 
-## 使用数组
+##### 访问数组中的元素
 
 - 通过`数组名.length`获取数组长度（元素的个数）。
 
-```
+```java
 int[] arr = new int[3];
 System.out.println(arr.length);
 ```
 
 - 通过索引来访问数组中的元素。
 
-```
+```java
 int[] arr = new int[3];
 arr[0] = 100; // 把 100 赋值给数组中的第一个元素
 arr[3] = 400; // 数组下标越界异常
 ```
 
-## 遍历数组
+##### 遍历数组中的元素
 
-```
+```java
 int[] arr = new int[10];
 for (int i = 0; i < arr.length; i++) {
     arr[i] = 100; // 给每个元素都赋值为 100.
@@ -907,9 +1085,13 @@ for (int i = 0; i < arr.length; i++) {
 
 
 
-# 数组的复制
 
-## System.arraycopy
+
+
+
+## day06 数组的复制
+
+### System.arraycopy
 
 - 直接存内存复制，相较于使用 for 循环遍历寻址复制，要快很多。
 - 线程不安全
@@ -927,7 +1109,7 @@ public native static void arraycopy(
 
 - 该方法使用了 native 关键字，说明调用的是其他语言写的底层函数。
 
-## Arrays.copyof
+#### Arrays.copyof
 
 ```
 public static <T, U> T[] copyof(U[] original, int newLength, Class<? extends T[]> newType) {
