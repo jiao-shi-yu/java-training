@@ -1523,64 +1523,90 @@ public static void b() {
 
 类可以看做是一个设计图纸，对象就是产品。
 
-###### 类中包含成员变量
-
-###### 和方法
+##### 类中包含成员变量和方法
 
 - 对象共有的属性/数据 - 成员变量
 - 对象共有的行为/动作 - 成员方法
 
 
-##### 创建类、实例化对象、访问成员（属性和方法）
+#### 二、创建类、实例化对象、访问成员（属性和方法）
 
 1. 创建类：__`class`关键字__
 
 ```java
-class Student {
-    //属性
-    public String name;
-    //方法
-    public void study() {
-        System.out.println("翻开单词表第一页，Apple，a-p-p-l-e, 苹果");          
+public class Student {
+    // 成员变量
+    String name;
+    int age;
+    String address;
+
+
+    // 方法
+    void study() {
+        System.out.println(name + "在学习...");
     }
+    void sayHi() {
+        System.out.println("大家好，我叫" + name + "，今年" + age + "岁了，家住" + address);
+    }
+
 }
 ```
 
 2. 实例化对象：__`new`关键字__
 
 ```java
-Student student = new Student();
+Student zhangSan = new Student();
 ```
 
-3. 访问属性：__`.`语法__
+3. 访问成员变量：__`.`语法__
 
 ```java
-student.name = "小明";
+zhangSan.name = "张三";
+zhangSan.age = 25;
+zhangSan.address = "河北廊坊";
 ```
 
 4. 调用方法：__`.`语法__
 
 ```java
-student.study();
+zhangSan.study();
+zhangSan.sayHi();
+```
+
+每个成员变量都有**默认的赋值**, `int`类型的变量默认赋值是`0`，引用数据类型的成员变量默认赋值是`null`
+
+```java
+Student somebody = new Student();
+somebody.study();
+somebody.sayHi();
+```
+
+控制台输出：
+
+```
+null在学习...
+大家好，我叫null，今年0岁了，家住null
 ```
 
 
 
-
-
-### day02
+### day02 对象和类(续)
 
 
 
-#### 方法的签名：方法名 + 参数列表
+#### 一、方法签名
 
-##### 方法重载(overload);
+###### 方法签名 = 方法名 + 参数列表
+
+
+
+#### 二、方法重载(overload);
 
 - 在同一个类中，方法名相同，参数列表不同的几个方法。
 - 编译器在编译时，会跟就方法的签名自动绑定调用的方法。
 
 
-##### 构造方法
+#### 三、构造方法
 
 是构造一个实例对象的方法
 
@@ -1596,7 +1622,7 @@ student.study();
 
 只能用在方法中，方法中访问成员变量之前，默认有个 this.
 
-#### this 的用法
+##### 四、this 的用法
 
 1. this.成员变量名 ---- 访问成员变量，非常常用。
 2. this.方法名()  ---- 调用方法，一般不会这么写
@@ -1606,7 +1632,7 @@ student.study();
 ###### 成员变量和局部变量是可以同名的，在使用的时候，采取就近原则。
 
 
-#### Java 内存模型
+#### 五、Java 内存模型
 
 1. 堆：存储 new 出来的对象
 2. 栈：局部变量，方法的参数
