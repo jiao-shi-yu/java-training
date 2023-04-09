@@ -1598,59 +1598,162 @@ null在学习...
 
 ###### 方法签名 = 方法名 + 参数列表
 
-
+如`show(String)`和`show(String, int)`都是方法签名。
 
 #### 二、方法重载(overload);
 
-- 在同一个类中，方法名相同，参数列表不同的几个方法。
-- 编译器在编译时，会跟就方法的签名自动绑定调用的方法。
+- 在同一个类中，几个方法可以方法名相同，但参数列表不同。
+- 编译器会根据**方法签名**，判断调用的是哪一个方法，自动绑定到具体的方法上。
+
+> 方法签名不同，才可以重载。方法签名只跟**方法名**和**参数列表**有关，跟返回值类型和参数名无关。
+>
+> **参数列表**取决于参数的类型、个数、排列等, 
+
+```java
+public class Aoo {
+    // show()
+    void show() {}
+    // show(String)
+    void show(String name) {}
+    // show(int)
+    void show(int age) {}
+    // show(int, String)
+    void show(int age, String name) {}
+
+//    int show() {} // 方法签名重复了
+//   void show(String address) {}  // 方法签名只在或类型和个数及排列顺序, 这里 show(String) already defined
+}
+```
+
+```java
+Aoo aoo = new Aoo();
+/**
+ * 编译器会根据**方法签名**，判断调用的是哪一个方法，自动绑定到具体的方法上。
+ */
+aoo.show();
+aoo.show(19, "张三");
+```
+
+
 
 
 #### 三、构造方法
 
-是构造一个实例对象的方法
+- 构造一个实例对象的方法
 
-- 构造方法名与类名相同，
-- 没有返回值，
+- 名称与类名相同，没有返回值类型。
 - 可以有参数，参数用来给成员变量赋值。
+- 编译器会提供一个默认的无参数的构造方法。
 - 创建对象的的时候，用`new`关键字，然后调用构造方法。
 - 构造方法可以重载，可以有一个参数，多个参数，也可以没有参数。
 
 
 
+
+
+#### 四、this 关键字
+
+##### this 的意义
+
 ###### this 指向当前对象，哪个实例对象调用方法，就指向那个实例对象
 
 只能用在方法中，方法中访问成员变量之前，默认有个 this.
 
-##### 四、this 的用法
+##### this 的用法
 
-1. this.成员变量名 ---- 访问成员变量，非常常用。
-2. this.方法名()  ---- 调用方法，一般不会这么写
-3. this() ----------- 调用构造方法。
+-  `this.成员变量名` 访问成员变量，非常常用。
+
+- `this.方法名()` 调用方法，一般不会这么写
+
+- `this()` 调用构造方法。
 
 
-###### 成员变量和局部变量是可以同名的，在使用的时候，采取就近原则。
+
+> 成员变量和局部变量是可以同名的，在使用的时候，采取就近原则。
+
+```java
+public class Student {
+    // 成员变量
+    String name;
+    int age;
+    String address;
+
+    /**
+     * 构造方法
+     * @param name
+     * @param age
+     * @param address
+     */
+    // 局部变量  String name, int age, String address
+    Student(String name, int age, String address) {
+        // this.name 访问成员变量
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+
+    /**
+     * 当你指定了构造方法后，编译器就不再提供默认的无参构造方法。
+     * 这里我们写一个无参数的构造方法
+     */
+    Student() {
+        // this(String, int, String) 是在调用上面写的那个构造方法
+        this("未指定", 1, "未指定");
+    }
+
+    // 成员方法
+    void study() {
+        System.out.println(name + "在学习...");
+    }
+    void sayHi() {
+        System.out.println("大家好，我叫" + name + "，今年" + age + "岁了，家住" + address);
+    }
+
+}
+
+```
+
+测试一下我们的构造方法：
+
+```java
+public static void main(String[] args) {
+    // 分别调用两个构造方法，创建两个不同的实例
+    Student zhangSan = new Student("张三", 19, "河北廊坊");
+    Student somebody = new Student();
+
+    // 调用成员方法
+    zhangSan.study();
+    zhangSan.sayHi();
+    somebody.study();
+    somebody.sayHi();
+}
+```
 
 
-#### 五、Java 内存模型
 
-1. 堆：存储 new 出来的对象
+> null 表示空，没有指向任何对象。
+>
+> 若引用的值为`null`，则该引用不能再进行**点语法**操作了，否则发生`NullPointerException`。
+
+
+
+
+
+### day03 引用数据类型、继承的意义
+
+
+
+#### 一、Java 内存模型
+
+1. 堆：存储 new 出来的对象、实例变量
 2. 栈：局部变量，方法的参数
-3. 方法区：class 字节码文件
+3. 方法区：.class 字节码文件、静态变量以及所有的方法
 
 
 
 
 
-
-
-##### null 表示空，没有指向任何对象。
-
-若引用的值为 null，则该引用不能再进行任何操作了，否则发生__ NullPointerException_。
-
-
-
-#### 引用类型数组
+#### 二、引用类型数组
 
 
 ```java
@@ -1670,7 +1773,13 @@ Student[] students = /*new Student[]*/ {
 }
 ```
 
-#### 继承
+
+
+
+
+### day04 继承与重写
+
+#### 一、继承
 
 ###### 作用：代码复用，便于组织维护。
 
@@ -1698,11 +1807,7 @@ Student[] students = /*new Student[]*/ {
 
 
 
-#### 向上转型和向下转型
-
-
-
-(upcasting) (downcasting)
+#### 二、向上转型和向下转型
 
 ###### 首先，明确一点：
 
@@ -1717,28 +1822,125 @@ Student[] students = /*new Student[]*/ {
 ###### 向下转型是
 
 一个父类引用，它实际上是，指向了子类对象。把这个父类引用赋值给子类引用的过程叫向下转型。向下转型是指把指向了子类对象的父类引用赋值给子类引用。
-向下转型，需要强制转换。如果父类引用指向的对象，并不是该子类的对象，就会报错。
-如:
+
+向下转型需要强制转换。如果父类引用指向的对象，并不是该子类的对象，就会报错。
 
 ```java
-Animal animal = new Bird();
-Bird bird = (Bird) animal;
+package day04;
+public class UpcastingDowncastingDemo {
+    public static void main(String[] args) {
+        Animal animal = new Animal();
+        animal.eyes = "一双大眼睛";
+        animal.see();
+
+        /**
+         * 父类不能访问子类特有的属性和方法
+         */
+//        String wingsOfAnimal = animal.wings;
+//        animal.fly();  // create method ...
+
+        Bird bird = new Bird();
+        /**
+         * 子类可以访问父类的属性、调用父类的方法
+         */
+        bird.eyes = "一对小眼睛"; // 子类可以访问父类的属性
+        bird.see(); // 子类可以调用父类的方法
+        /**
+         * 还可以访问特有的属性，调用特有的方法
+         */
+        bird.wings = "一对小翅膀";
+        bird.fly();
+
+        /**
+         * 子类对象直接赋值给父类引用，这就是向上造型。
+         */
+        Animal birdAnimal = bird;
+        birdAnimal.see();
+
+        /**
+         * 把指向子类对象的父类引用 赋值给 子类引用，就是向下转型
+         */
+        Bird aBird = (Bird) birdAnimal;
+        aBird.fly();
+
+
+    }
+
+}
+
+class Animal {
+    String eyes;
+    void see() {
+        System.out.printf("我用%s看着你%n", eyes);
+    }
+}
+
+class Bird extends Animal {
+    String wings;
+    void fly() {
+        System.out.printf("我用%s飞翔%n", wings);
+    }
+}
 ```
 
-
-##### 向上造型的意义：
+##### 向上转型的意义：
 
 **提高代码的可扩展性**，比如说，我定义一个方法，参数类型是 Animal。调用方法的时候，传入的参数可以是 Animal 类型的对象，也可以是 Animal 的多种子类对象， Bird \ Dog \ Monkey 等等。
 
+```	java
+package day04;
+
+public class UpcastingUseCaseDemo {
+    public static void main(String[] args) {
+        Person[] persons = new Person[3];
+        persons[0] = new Person("张三", 25, "北京");
+        persons[1] = new Student("李四", 21, "上海", "12345");
+        persons[2] = new Teacher("王五", 30, "济南", 5000.00);
+
+        for (Person person : persons) {
+            person.sayHi();
+        }
+    }
+}
+
+
+class Person {
+    String name;
+    int age;
+    String address;
+    Person(String name, int age, String address) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+
+    void sayHi() {
+        System.out.printf("大家好，我叫%s，今年%d岁，家住%s。%n", name, age, address);
+    }
+}
+
+class Student extends Person {
+    String studentId;
+    Student(String name, int age, String address, String studentId) {
+        super(name, age, address);
+        this.studentId = studentId;
+    }
+}
+
+class Teacher extends Person {
+    double salary;
+    Teacher(String name, int age, String address, double salary) {
+        super(name, age, address);
+        this.salary  = salary;
+    }
+}
+```
 
 
 
 
 
-
-
-
-#### 方法的重写(Override)
+#### 三、方法的重写(Override)
 
 子类对父类的方法进行重写，进行不同的实现，要求方法名和参数列表必须相同。
 
@@ -1756,6 +1958,30 @@ Bird bird = (Bird) animal;
 - 一大
   + 子类重写的方法的访问控制权限，不能比父类更严格。
 
+```java
+package day04;
+public class OverrideDemo {
+    public static void main(String[] args) {
+    }
+}
+
+//超类大，派生类小
+class Coo{
+    void show() {}
+    double test() { return 0.0; }
+    Doo say() { return null; }
+    Coo sayHi() { return null; }
+}
+class Doo extends Coo{
+    //int show() { return 5;} //编译错误，void时必须相同
+    //int test() { return 0; } //编译错误，基本类型时必须相同
+    //Coo say() { return null; } //编译错误，引用类型必须小于或等于
+    Doo sayHi() { return null; } //正确
+}
+```
+
+
+
 #### 重写与重载的区别
 
 ##### 重写(Override)
@@ -1768,16 +1994,43 @@ Bird bird = (Bird) animal;
 重载是一个类中有多个名称相同、参数列表不同的方法，在编译期，就进行了静态绑定。只要求方法名相同，参数列表不同，其他的就没有要求了。
 
 
-#### 写访问修饰符
 
-public 公共的，任何类都可访问
-默认不写，包内可见。
-protected 包内和其它包中的子类可见。
-private 同一个类中可见
+### day05 访问控制和几个关键字
+
+#### 一、`package`和`import`
+
+##### package
+
+类名作为唯一标识——很有可能出现重名的类。但只要放在不同的包里，即便类名相同，也可以区分开来。
+
+把一些功能相似或相近的类，放在同一个同一个包下，也便于代码的维护和管理。
+
+类的全称：`包名.类名`。
+
+**包**通常会有层次。大包、中包、小包、小小包。正所谓：*人生无常，大肠包小肠*。
+
+**包名**都是用小写字母。流行的写法：`域名反写.项目名称.模块名称.类名`。
+
+##### import
+
+同一个包下的类，默认可以直接访问。
+
+不同包下的类，不能直接访问。若想访问，先导包。使用`import`关键字。
 
 
 
-#### final 关键字
+#### 二、访问控制修饰符
+
+> 有一种说法叫：数据私有化，行为公开化。 成员变量一般是**private**的，方法大多是**public**的。
+
+- **public**：公共的，**任何类**都可访问
+- **默认不写**，包内可见。
+- **protected**：**包内和其它包中的子类**可见。
+- **private**：**同一个类**中可见
+
+
+
+#### 三、`final`关键字
 
 final 最终的，不可变的。 final 可以修饰变量、定义常量、修饰方法和类。
 
@@ -1867,13 +2120,102 @@ class SubClass extends NotFinalClass {
 
 
 
+#### 四、`static`关键字
+
+##### 静态变量
+
+成员变量分为：
+
+1. 实例变量：没有`static`修饰，属于对象，存储在堆中。每个对象都有属于他自己的实例变量。通过`实例对象.实例变量`访问。
+
+2. 静态变量：由`static`修饰，属于类的，存储在方法区中。多个对象共用一份。通过`类名.静态变量`访问。
+
+##### 静态方法
+
+2. 静态方法：由`static`修饰，属于类的方法。不能调用`this`和`super`。不需要创建对象就能访问静态方法。类加载的时候，静态方法就加载了。不能访问实例变量，因为静态方法的加载先于实例对象的创建，没有实例对象也就没有实例变量，谈何访问？
+
+##### 静态块
+
+- 由`static`修饰的语句块，就是静态块。
+- 属于类，在类加载期间自动执行。
+  - 因为一个类只加载一次，所以静态块也只执行一次。
+  - 因为类的加载先于实例对象的创建，故静态块的执行远先于构造方法的执行。
+- 应用场景：加载/初始化静态资源（图片、音频、视频等）。
+
+```java
+package day05;
+
+public class StaticDemo {
+	public static void main(String[] args) {
+		// a 是各自的, b 是公用的
+		Loo loo1 = new Loo(); // a for loo1:1   b for all: 1
+		loo1.show();
+		Loo loo2 = new Loo(); // a for loo2:1   b for all: 2
+		loo2.show();
+		Loo loo3 = new Loo(); // a for loo3:1   b for all: 3
+		loo2.show();
+		
+    // Noo 静态块执行，Noo构造方法执行
+		Noo noo1 = new Noo();
+    // Noo构造方法执行
+		Noo noo2 = new Noo();
+	}
+}
+class Loo { // 演示静态变量
+	int a;
+	// 静态变量
+	static int b;
+
+	Loo() {
+		a++;
+		b++;
+	}
+
+	void show() {
+		System.out.printf("a=%d, b=%d%n", a, b);
+	}
+}
+
+class Moo { // 演示静态方法
+	int a;
+	static int b; // 静态变量
+
+	void show() { // 实例方法
+		System.out.println(a);
+		System.out.println(b);
+	}
+
+	static void test() { //
+//		System.out.println(a); //静态方法只能访问静态变量
+		System.out.println(b);
+	}
+
+}
+class Noo { // 演示静态块
+	static {
+		System.out.println("静态块");
+	}
+
+	Noo() {
+		System.out.println("构造方法");
+	}
+}
+```
+
+###### 控制台输出
+
+```
+a=1, b=1
+a=1, b=2
+a=1, b=3
+静态块
+构造方法
+构造方法
+```
 
 
 
 
-
-
-#### static 关键字
 
 ##### static 有什么用？
 
@@ -1898,8 +2240,6 @@ class SubClass extends NotFinalClass {
 
 
 
-
-
 ##### static 与 final 的藕断丝连
 
 Java 中的常量，是用 static final 来修饰的。
@@ -1909,11 +2249,8 @@ Java 中的常量，是用 static final 来修饰的。
 2. final 体现了常量不变的特点。
 
 
-#### 静态方法
 
-#### 静态块儿
-
-#### 静态导入
+##### 静态导入
 
 `import static`
 
@@ -1923,17 +2260,7 @@ Java 中的常量，是用 static final 来修饰的。
 
 
 
-
-
-
-
-
-
-
-
 ## 使用Java编写射击游戏
-
-#### 第一天
 
 
 
