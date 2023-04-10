@@ -2260,7 +2260,465 @@ Java 中的常量，是用 static final 来修饰的。
 
 
 
-## 使用Java编写射击游戏
+### day07 内部类详解
+
+#### 嵌套类和内部类
+
+#### 了解内部类和嵌套类的概念
+
+内部类（InnerClass)，定义在类里面的类，称为内部类。
+
+根据官方的说法，首先有一个嵌套类（NestClass）的概念。嵌套类就是类里面嵌套一个类。嵌套类分为静态嵌套类和非静态嵌套类。静态嵌套类完全可以独立存在，只是借外部类的壳儿用一下。非静态嵌套类就是俗称的内部类，必须依附于外部类的存在而存在。
+
+嵌套类被 static 修饰时，称为静态嵌套类；--- Static Nested Classes
+没有被 static 修饰时，称作内部类。     --- Inner Classes
+内部类有分为局部内部类(Local Inner Classes)和匿名内部类（Anonymous Inner Class)。
+
+所以，广泛意义上的内部类分为四种：
+
+1. 静态嵌套类
+2. 成员内部类
+3. 局部内部类
+4. 匿名内部类
+
+
+
+#### 1. 成员内部类 (Member Innner Classes)
+
+成员内部类是最普通的内部类，它的定义位于另一个类的内部。
+
+```java
+class Circle {
+    double radius = 0;
+    
+    public Circle(double radius) {
+        this.radius = radius;
+    }
+
+    class Draw {
+        public void drawShape() {
+            System.out.println("drawShape");
+        }
+    }
+}
+```
+
+这样看起来，类 Draw 像是类 Circle 的一个成员，Circle 称为外部类。
+**成员内部类**可以无条件地访问外部类的属性和方法。其中也包括了私有属性和静态方法。
+
+```java
+class Circle {
+    private double radius = 0;
+    public static int count = 0;
+    public Circle(double radius) {
+        this.radius = radius;
+    }
+
+    class Draw {
+        public void drawShape() {
+            System.out.println(radius); // 外部类的 private 成员
+            System.out.println(count);  // 外部类的 static 成员
+        }
+    }
+}
+```
+
+不过要注意的是，当__成员内部类__拥有和外部类**同名的成员变量或者方法**时，会发生隐藏现象。即，默认情况下访问的是成员内部类的成员。这个时候，如果要访问外部类的成员，就需要使用`外部类名.this.成员`的形式来访问。
+
+虽然**成员内部类**可以无条件地访问外部类的成员，但是外部类想访问**成员内部类**的成员就没那么容易了。
+在外部类中，如果想要访问成员内部类的成员，必须先创建一个成员内部类的对象，然后通过这个对象，访问内部类的成员。
+
+```java
+class Cirlce {
+
+    private double radius = 0;
+
+    public static int count = 0;
+
+    public Circle(double radius) {
+        this.radius = radius;
+        // 外部类需要实例化一个内部类的对象，然后进行访问
+        getDrawInstance().drawShape();
+    }
+
+    private getDrawInstance() {
+        return new Draw();
+    }
+
+    class Draw {
+        public void drawShape() {
+            /**
+             * 内部类可以任意访问外部类成员
+             */
+            System.out.println(radius); // 外部类的 private 成员
+            System.out.println(count);  // 外部类的 static 成员
+        }
+    }
+}
+```
+
+成员内部类是依附外部类而存在的，也就是说，如果要创建成员内部类的对象，前提是__必须存在一个外部类的对象__。
+创建成员内部类对象的一般方式如下:
+
+```java
+    public static void main(String[] args) {
+        Circle circle = new Circle(4); //自动类型转换
+        Circle.Draw draw = new Circle(6).new Draw();
+        // private 方法在当前类里面，是可见的。
+        Circle.Draw draw2 = new Circle(7).getDrawInstance();
+    }
+```
+
+成员内部类可以拥有四种访问权限。
+
+
+
+#### 2. 局部内部类 (Local Inner Classes)
+
+局部内部类是作用在一个方法或者一个作用域里面的类。 
+它和成员内部类的区别在于：局部内部类的访问权限仅限于方法内或者该作用域内。
+
+```java
+class People {
+    public People() {
+
+    }
+}
+/* 这个例子有点儿男权哦 */
+class Man {
+    public Man() {
+
+    }
+
+    public People getWoman() {
+        class Woman extends People {
+            int age = 16;
+        }
+        return new Woman();
+    }
+}
+```
+
+注意，**局部内部类**就像是方法里面的一个局部变量一样，是不能被`public`、`protected`、`private`、`static`修饰符的。
+
+
+
+#### 3. 匿名内部类(Anonymous Inner Classes)
+
+匿名内部类这一语法适用于创建一次性使用的类。
+语法格式为：
+
+```java
+new 实现接口() | 父类构造器(实参列表) 
+{
+    // 匿名内部类的 body
+}
+```
+
+从定义中可以看出，使用匿名内部类需要注意两点。
+
+- 匿名内部类不能为抽象类，因为系统在创建匿名内部类时，会立即创建匿名内部类的实例。
+- 匿名内部类无法定义构造器。匿名内部类不存在类名，也就无从定义构造器。不过可以通过定义构造器块，来完成构造器需要完成的工作。
+
+**而匿名内部类最常见的的应用场合为：通过实现接口，来创建匿名内部类。**
+
+比如自己定义一个接口：
+
+```java
+interface ProductInformationList {
+    int getNumber();
+    String getName();
+}
+
+public class InterfaceAnonymousClassTest {
+    
+    public void test(ProductInformationList pil) {
+        System.out.println("产品名称：" + pil.getName() + "，产品数量：" + pil.getNumber());
+    }
+    
+    public static void main(String[] args) {
+        InterfaceAnonymousClassTest ac = new InterfaceAnonymousClassTest();
+        ac.test(new ProductInformationList() {
+            
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+            
+            @Override
+            public String getName() {
+                return "电脑";
+            }
+        });
+    }
+}
+```
+
+以上的例子中：
+
+- `test()`方法需要传入一个`ProductInformationList`的实现类的对象作为参数。
+- 如果这个接口的实现类的对象需要重复使用的话，可以将次实现类，独立地定义为一个类。
+- 但是现在只需要使用一次，所以就采用上述方法。
+- 定义一个匿名内部类，然后直接通过关键字`new`来实例化一个匿名内部类的对象。
+  注意两点：
+- 匿名内部类是需要被实例化的，不能是抽象类。所以__必须实现抽象父类或者接口中的全部抽象方法__。
+- 如果通过接口来创建匿名内部类，匿名内部类不能显式地创建构造器。所以__匿名内部类只能有一个显式的无参构造器__。也就是说，new 接口名后的括号里，不能传入参数。
+
+**通过过继承抽象父类来创建匿名内部类，匿名内部类将拥有一个参数列表与父类型同的构造器**
+
+举个例子：
+
+```java
+abstract class Person {
+    private String name;
+    public abstract double getHeight();
+    public Person() {}
+    public Person(String name) {
+        this.name = name;
+    }
+    // getter and setter for name
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+}
+public class AbstractClassAnonymousClassTest {
+    public void test(Person p) {
+        System.out.printf("姓名为%s;%n身高为%.2f;%n", p.getName(), p.getHeight());
+    }
+    public static void main(String[] args) {
+        AbstractClassAnonymousClassTest ac = new AbstractClassAnonymousClassTest();
+        
+        // 调用有参构造，实例化匿名类对象。
+        ac.test(new Person("图灵") /*这边调用有参构造传入一个参数*/ 
+                {
+                    // 实现抽象方法
+                    @Override
+                    public double getHeight() {
+                        return 1.80;
+                    } 
+                    
+                }
+        );
+        
+        ac.test(new Person() /* 这次使用的是无参构造*/ {
+            // 实现抽象方法
+            @Override
+            public double getHeight() {
+                // TODO Auto-generated method stub
+                return 1.68;
+            }
+            // 重写父类方法
+            @Override
+            public String getName() {
+                return "小明";
+            }
+        });
+    }
+}
+
+```
+
+再比如创建线程时，
+如果使用继承 Thread 类的方式，就会耦合性太强。
+更推荐的方式是：使用一个实现了 Runnable 接口的类来创建线程。
+更进一步的说：实现了Runnable接口的匿名内部类。
+
+```java
+new Thread(new Runnable() {
+    @Override 
+    public void run() {
+        int i = 0;
+        while (true) {
+            i++;
+        }
+    }
+});
+```
+
+当然这个 Java 8 之后，我们一般使用 **Lambda 表达式**对匿名内部类进行一个替换。
+
+
+
+
+#### 4. 静态嵌套类 (Static Nested Classes)
+
+
+什么是内部。内部就是我是你的一部分，我了解你，我知道你的全部。没有你就没有我。（所以内部类对象是以外部类对象存在为前提的。）
+
+什么是嵌套？嵌套就是我跟你没关系，我只是借你的壳用一下，我完全可以自己独立存在。我不跟其他的类有关系，只跟你配合使用。
+
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        Outter.Inner inner = new Outter.Inner();
+    }
+}
+
+class Outter {
+    public Outter() {
+        System.out.println("Outter.Outter()");
+    }
+    static class Inner {
+        public Inner() {
+            System.out.println("Outter.Inner.Inner()");
+        }
+    }
+}
+```
+
+执行 main() 方法，输出：
+
+```
+Outter.Inner.Inner()
+```
+
+可以看出静态嵌套类，是一个完全独立的类。根本不需要外部类的实例什么的，就是借它的壳用一下。
+
+在编译之后，成员内部类的字节码文件中，有一个指向外部类的 fianl 引用。而静态嵌套类没有，编译之后是一个完全独立的字节码文件。
+
+
+
+### day08 抽象类和接口
+
+#### 一、抽象类和接口概念
+
+**抽象类**：抽象类是用`abstract`关键字修饰的，包含抽象抽象方法的类。
+
+**接口**：接口是抽象方法的集合，通常用来提供一种统一的功能。
+
+
+##### 抽象类和接口的区别
+
+1. 定义不同：抽象类是一个类；接口是抽象方法的集合，不是类。
+2. 语法关键字不同：使用 abstract class 声明抽象类，使用 extends 继承抽象类；使用 interface 定义接口，使用 implements 实现接口。
+   抽象类中的抽象方法需要用 abstract 声明； 接口中的抽象方法默认就是抽象方法，不需要abstract 关键字。
+3. 可以定义的变量不同：抽象类是一个类，普通的类能定义的变量，抽象类都可以定义；接口中只能定义 static final 修饰的常量。
+4. 包含的方法不同：抽象类中可以包含成员方法、构造方法、main 方法，以及这些方法的具体实现；接口中只能声明抽象方法，且不能有具体实现。JDK 1.8 之后，接口中引入了静态方法和默认方法。
+5. 抽象方法的访问修饰符：
+   - 抽象类：
+     + JDK 1.8 前，抽象方法的默认是 protected. 可选 public
+     + JDK 1.8 时，默认 default, 可选 public、 protected.
+   - 接口：
+     + JDK 1.8 前，接口中只有 public 权限，不写也是 public.
+     + JDK 1.8 时，默认 default, 可选 public.
+     + JDK 1.9 起，接口中的抽象方法可以用 private 修饰。
+6. 单继承：一个类只能继承一个抽象类，却可以实现过多个接口。类是单继承的，接口不是。`
+7. 速度：抽象类比接口快。
+
+
+
+##### 抽象类和接口的相同点
+
+1. 都可以包含抽象方法
+
+2. 访问控制权限，都只有公共 `public` 和包访问权限 `default`.
+
+
+
+
+
+
+
+### day09 多态
+
+#### 一、面向对象的三大特征
+
+封装之前，有一步抽象。抽象就是把事物抽象为一个类，通过属性和方法，表示事物的状态和行为。
+
+##### 封装
+
+封装就是将对象的属性和实现细节隐藏起来，仅提供一些特定的方法，以供程序的其它部分调用。就像你会开车，但不需要知道，汽车发动机的工作原理。
+通过访问控制修饰符，对属性进行私有化修饰，然后提供一个公有的 get、set 方法。
+
+###### 封装的意义
+
+- 增强安全性
+- 简化编程，你只需要调用方法就行了，管他怎么实现的呢。
+
+
+##### 继承
+
+Java 中的类可以分为三种，普通的类、抽象类和接口。
+一般是：普通的类继承抽象类或者实现接口。
+把一些公有的属性和方法，写在父类中。
+
+###### 继承的意义
+
+子类继承父类，就拥有了父类的属性和方法，从而提高了代码的复用性。
+另外子类还可以写自己的属性和方法，还可以对父类的方法进行覆盖重写。
+
+继承是多态得以实现的前提。父类引用指向子类对象，然后调用方法的时候进行动态绑定。
+
+##### 多态
+
+多态可以说是「一个接口，多种实现」。父类引用的变量可以指向子类的实例，然后调用方法的时候，进行动态绑定。
+
+###### 多态的体现：
+
+1. **对象多态**：父类引用，既可以指向父类实例，又可以指向多种不同的子类实例。
+2. **行为多态**：实例对象调用方法的时候，具体调用的是哪个方法，也是有多种可能的。这个要根据引用和传入的实参来确定。
+
+也就是说：多态的多，既体现在**实例对象**的多，又体现在**行为方法**的多。
+
+###### 多态分为：编译时多态和运行时多态。
+
+- 编译时多态，是通过方法重载来实现的，在编译期就进行了方法的静态绑定。
+- 运行时多态，是通过方法覆写来实现的，是在运行时进行动态绑定的。
+
+###### 实现运行时多态的三个必要条件
+
+1. 继承：子类继承父类
+2. 重写：子类重写父类方法
+3. 向上造型：父类引用指向子类接口
+
+还有一点，需要说明：实现了向上造型之后，调用的方法是父类的方法。此时如果想要调用子类重写后的方法，就只需要类型强制转换一下。
+
+##### 多态的意义
+
+- 对外提供一个统一的服务接口，也就是说，基于接口而不是基于类进行开发。
+- 顺便还提供了一个灵活性。
+
+
+
+
+
+### day10 Java内存管理
+
+#### 一、内存管理
+
+Java 中是由**JVM**进行内存管理的。
+
+JVM将内存分为三个区：
+
++ 堆：
+  + 存储 new 出来的对象（包括实例变量）
+  + 垃圾：没有被引用的对象，会被视为垃圾。
+    + 垃圾回收器(GC)，不定时到内存中清理垃圾，回收过程是透明的。
+    + 通过调用`System.gc()`向虚拟机建议尽快调用GC来回收。
+  + 实例变量的生命周期：
+    + 创建对象时存储在堆中，对象被回收时一并被回收
+  + 内存泄漏
+    + 不再使用的对象，没有被及时回收
+    + 建议：不再使用的对象，应该及时设置为`null`
++ 栈
+  + 存储正在执行的方法中的参数和局部变量
+  + 有对应的栈帧，用于储存它们
+  + 方法调用结束，栈帧自动清除，局部变量清除
++ 方法区
+  + 存储字节码文件、静态变量和方法
+
+
+
+
+
+
+
+
 
 
 
