@@ -3373,7 +3373,20 @@ PrintStream源码：
 
 
 
-###### 字符串分割
+
+
+
+
+### day03 文档注释、字符串API (续)
+
+> 第三天，范传奇老师开始讲 Java SE，要把之前的普通Java项目改成Maven项目。
+
+#### 一、普通项目转Maven项目
+
+1. 项目名右键
+2. Add Framework support
+3. 勾选Maven，OK
+4. 编辑pom.xml
 
 
 
