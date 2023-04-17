@@ -3090,3 +3090,292 @@ int n = 100;
 n = n + (n >> 1);
 ```
 
+
+
+### day02 API 字符串
+
+#### 一、API
+
+Application Programming Interface， 应用程序编程接口。是Java官方专家编写的可供开发者调用的比较实用方便的满足特定功能工具类。
+
+在Java语言中，这些功能以类的形式封装。JDK API 包含的类库功能强大，**经常使用的包**有：
+
+- java.lang Java语言包，存储了Java语言最核心的API。
+  - 由于java.lang是最常用的，所有Java类都自动`import java.lang.*`
+
+- java.io 系统IO包，系统输入输出
+- java.net 网络
+- java.util 工具包
+
+#### 二、String API
+
+##### String对象
+
+- String 就是字符串，“字符串”都是String类型的对象。
+
+```java
+String s1 = "ABC";
+char[] characters = {'A', 'B', 'C'};
+String s2 = new String(characters);
+```
+
+上述代码中，`s1`和`s2`引用的对象都是字符串对象，功能相当。
+
+- 使用`new`可以创建字符串对象，使用字符串字面量`"ABC"`可以可以创建字符串对象，使用字面量的方式更加方便。
+
+##### 字符串对象是“不变的”
+
+- 字符串内部封装了一个不可变的字符数组，变量名叫`value`.
+
+  ```java
+   private final char value[];
+  ```
+
+- 所以，字符串对象一旦创建就不可改变！
+
+示例代码：
+
+```java
+String s1 = "ABC";
+String s2 = s1;
+s1 = s1 + "DEF";
+System.out.println(s2); //ABC
+System.out.println(s1); //
+```
+
+这里改变的是字符串变量的引用。
+
+##### 字符串常量池
+
+Java为了优化字符串性能，将字符串常量进行“复用”，提升系统性能。
+
+- 静态字符串：存储到字符串常量池，进行复用
+
+  - 字符串字面量
+    - `String s1 = "ABC";`
+  - 字符串常量
+    - `public static final String s2 = "ABC";`
+  - 字符串字面量拼接生成的字符串
+    - `String s3 = "A" + "BC";//编译后"ABC"` 
+
+  ```java
+  /**
+   * 字符串常量池
+   * Java 使用字符串常量池，复用字符串。
+   */
+  String s1 = "ABC";
+  String s2 = "ABC";
+  String s3 = "DEF";
+  String s4 = "DEF";
+  String s5 = "A" + "BC";
+  System.out.println(s1 == s2);//true
+  System.out.println(s3 == s4);//true
+  System.out.println(s5 == s1);//true
+  ```
+
+- 动态字符串：不复用
+
+  - 使用`new`创建的字符串
+  - 字符串变量连接的结果
+
+  ```java
+  // 动态字符串不复用
+  char[] chars = {'A', 'B', 'C'};
+  String s6 = new String(chars);
+  String s7 = new String("ABC");
+  String s8 = "B";
+  String s9 = "BC";
+  String s10 = s8 + s9;
+  System.out.println(s1 == s6);   //false
+  System.out.println(s1 == s7);   //false
+  System.out.println(s1 == s10);  //false
+  ```
+
+  ###### 经典面试题分析
+
+  ```java
+  String str = new String("ABC");
+  ```
+
+  以上代码创建了几个对象？
+
+  一个char数组`{'A','B','C'}`，两个字符串对象，`original`, `str`。
+
+##### 字符串常用API
+
+###### 字符串长度和字符串位置
+
+`length()`
+
+- 返回数组长度
+
+- 字符串长度是指字符的个数，无论中英文都算一个字符。
+
+`charAt(index)`
+
+- 返回指定位置的字符
+
+- 字符位置从0开始计数。
+
+###### 检索字符、字符串的位置
+
+`indexOf()`
+
+- 查找指定字符：`str.indexOf('i')`,返回字符串第一次出现`i`的位置；若未找到，则返回`-1`.
+- 查找指定字符串
+- 二者都可以指定，从什么地方开始查找。
+
+`lastIndexOf()`
+
+- 从后向前查找
+
+```java
+String str = "Thinking in Java是一部好书";
+int i = str.indexOf('i');
+int n = str.indexOf('X');
+System.out.printf("i=%d, n=%d%n", i, n);
+
+// 从3位置查找字符'i'
+
+i = str.indexOf('i', 3);
+System.out.printf("i now equals %d%n", i);
+// 查找字符串同理
+i = str.indexOf("in", 6);
+System.out.printf("i now equals %d%n", i);
+
+i = str.lastIndexOf("in");
+System.out.printf("i now equals %d%n", i);
+
+```
+
+###### 大小写转换
+
+`toLowerCase()`:返回小写形式的字符串。需要接收。
+
+```java
+String str = "Thinking in Java是一部好书";
+str = str.toLowerCase();
+System.out.println(str);
+```
+
+
+
+`toUpperCase()`:返回大写形式的字符串。记得接收。
+
+```java
+String str = "Thinking in Java是一部好书";
+str = str.toUpperCase();
+System.out.println(str);
+
+/**
+ * 利用大小写转换 进行不区分大小写的查找
+ */
+int i = str.toLowerCase().indexOf("java");
+System.out.println(i);
+```
+
+
+
+###### 去除两端空白字符
+
+`trim()`：返回两端去除了空白字符的字符串。
+
+```java
+String name = " Tom and Jerry ";
+name = name.trim();
+System.out.println(name);
+```
+
+
+
+###### 截取子字符串
+
+`substring(int begainIndex, int endIndex)`:返回子字符串，从指定位置开始，到指定位置结束。
+
+案例：截取邮箱地址中的用户名。
+
+```java
+/**
+ * 任意输入一个邮箱地址，从邮箱地址中截取用户名
+ */
+Scanner scanner = new Scanner(System.in);
+System.out.println("请输入一个邮箱：");
+String mail = scanner.nextLine();
+// 获取'@'的位置
+int index = mail.indexOf("@");
+// 截取用户名
+String name = mail.substring(0, index);
+System.out.println(name);
+```
+
+
+
+###### 检查字符串的开头和结尾
+
+`startsWith(String prefix)`:判断是否以指定字符串开始。
+
+`endsWith(String suffix)`:判断是否以指定字符串结尾。
+
+```java
+/**
+ * 检查字符串的开头和结尾
+ */
+String url = "https://doc.canglaoshi.org/index.html";
+
+boolean b1 = url.startsWith("https");
+boolean b2 = url.endsWith(".html");
+
+if (b1 && b2) {
+    System.out.println("OK，网址没问题");
+}
+
+```
+
+
+
+###### 将其他类型转换为字符串
+
+`String.valueOf()`:指定参数，返回有参数转换而成的字符串。
+
+代码示例：
+
+```java
+double pi = 3.1415926535897832;
+String s = String.valueOf(pi);
+System.out.println(s);
+System.out.println(pi);
+```
+
+String.java源码：
+
+```java
+public static String valueOf(double d) {
+    return Double.toString(d);
+}
+```
+
+PrintStream源码：
+
+```java
+    public void println(double x) {
+        synchronized (this) {
+            print(x);
+            newLine();
+        }
+    }
+
+
+		public void print(double d) {
+        write(String.valueOf(d));
+    }
+
+```
+
+
+
+###### 字符串分割
+
+
+
+
+
