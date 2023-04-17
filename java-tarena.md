@@ -3377,7 +3377,7 @@ PrintStream源码：
 
 
 
-### day03 文档注释、字符串API (续)
+### day03 StringBuilder、StringBuffer、正则表达式、Object
 
 > 第三天，范传奇老师开始讲 Java SE，要把之前的普通Java项目改成Maven项目。
 
@@ -3390,5 +3390,513 @@ PrintStream源码：
 
 
 
+#### 二、StringBuilder
 
+String不适合频繁修改：内存开销大，性能低。
+
+为了解决这个问题，Java提供了一个用于修改字符串的API：**StringBuilder**。
+
+StringBuilder内部维护一个可变的`char[]`数组，修改性能高，内存开销小。并且提供了便于修改字符串的相关操作：增删改查等。
+
+##### StringBuider API
+
+StringBuilder提供了多种API，可以对字符串进行增添、修改、删除、插入、反转字符串等操作。而String的API，如`indexOf()`等，StringBuilder也都支持。
+
+StringBuilser只是修改字符串的工具类，并非String本身。当使用StringBuilder对内容进行修改之后，可以调用toString()方法，得到一个字符串对象。
+
+```java
+        String str = "好好学习java";
+        //StringBuilder常见的构造器
+        //默认内部维护一个空字符串
+        StringBuilder builder = new StringBuilder();
+        //传入一个字符串，将该字符串的内容复制一份传入builder当中
+        StringBuilder builder1 = new StringBuilder(str);
+
+
+        /**
+         * 增添
+         *
+         * 好好学习java
+         *    V
+         * 好好学习java,为了找个好工作！
+         *
+         */
+        builder1.append(",为了找个好工作！");
+        System.out.println(str);  // String的内容是不变的
+        System.out.println(builder1); // StringBuilder的内容是可变的
+
+
+        /**
+         * 修改
+         * 好好学习java,为了找个好工作！
+         *      V
+         * 好好学习java,就是为了改变世界！
+         */
+        // 对索引为9到16(不包含16)的字符，进行替换
+        builder1.replace(9,16,"就是为了改变世界");
+        System.out.println(builder1);
+
+
+        /**
+         * 删除
+         * 好好学习java,就是为了改变世界！
+         *         V
+         * ,就是为了改变世界！
+         */
+        // 删除索引0到8(不包含8)的字符
+        builder1.delete(0,8);
+        System.out.println(builder1);
+
+        /**
+         * 插入
+         */
+        builder1.insert(0, "活着");
+        System.out.println(builder1);
+
+
+        // 反转字符串内容
+        builder1.reverse();
+        System.out.println(builder1);
+
+        // toString() 得到字符串
+        String line = builder1.toString();
+        System.out.println(line);
+```
+
+###### 对StringBuilder修改字符串的性能进行测试
+
+```java
+        String str = "a";
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < 10_000_000;i++) {
+            builder.append("a");
+        }
+        System.out.println("执行完毕！");
+```
+
+实测，速度很快。
+
+#### 三、StringBuffer
+
+StringBuffer的方法功能，与Stringbuilder一样。线程安全，但性能低于StringBuilder。
+
+StringBuffer出现得比StringBuilder早。实践当中，很多时候不需要考虑线程安全，更偏向于性能。所以后来Java才推出StringBuilder。
+
+
+
+#### 四、正则表达式
+
+正则表达式 Regular Expression。
+
+##### 字符集
+
+| 正则表达式   | 说明                          |
+| ------------ | :---------------------------- |
+| `[abc]`      | a、b、c 中任意一个字符        |
+| `[^abc]`     | 除了 a、b、c 的任意字符       |
+| `[a-z]`      | a、b、c……、z 中的任意一个字符 |
+| `[a-zA-Z0-9]` | a-z,A-Z,0-9,中的任意一个字符  |
+| `[a-z]&&[^bc]` | a-z 中除了 bc                 |
+
+##### 预定义字符集
+
+| 预定义字符 | 说明                                   |
+| :--------- | :------------------------------------- |
+| `.`        | 任意一个字符                           |
+| `\d`       | 任意一个数字字符，相当于[0-9]          |
+| `\w`       | 任意一个单词字符，相当于[a-zA-Z0-9]    |
+| `\s`       | 任意一个空白字符，相当于[\t\n\xOB\f\r] |
+| `\D`       | 任意一个非数字字符                     |
+| `\W`       | 任意一个非单词字符                     |
+| `\S`       | 任意一个非空白字符                     |
+
+
+##### 数量词
+
+| 正则表达式 | 说明                  |
+| :--------- | :-------------------- |
+| `X?`       | 表示 0 或 1 个 X      |
+| `X+`       | 表示有1 个或多个 X    |
+| `X*`       | 表示 0 或任意多个 X   |
+| `X{n}`     | 表示 n 个X            |
+| `x{n,}`    | 表示 n 个到任意多个 X |
+| `x{n, m}`  | 表示 n 到 m 个 X      |
+
+以邮政编码为例：
+
+1. `[0-9][0-9][0-9][0-9][0-9][0-9]`
+2. 使用预定义字符集后：`\d\d\d\d\d\d`
+3. 使用数量词后：`\d{6}`
+
+
+
+##### 分组`()`
+
+`()`圆括号表示分组，可以将括号内一系列正则表达式可看做一个__整体__，分组时可以用`|`表示“或”关系。
+
+例如：`(abc|def){3}`表示`abc`或`def`出现三次。可以匹配搭配的字符，有`abcabcabc`,`abcdefabc`等。
+
+
+
+##### 边界匹配`^`和`$`
+
+- `^`表示字符串开始
+- `$`表示字符串结束
+
+例如：匹配用户名-从头到尾连续8~10个单词字符
+
+- `\w{8,10}`
+- `^\w{8,10}$`
+
+###### 案例：邮箱地址的正则表达式
+
+```
+xiaoming@163ac.com.cn
+```
+
+```
+[a-zA-Z0-9_]+@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+
+```
+
+
+
+##### String API 也支持正则表达式
+
+###### `boolean matches(regex)`  --- 匹配
+
+将一个字符串与正则表达式进行匹配，如果匹配成功就返回`true`，否则返回`false`。
+
+```java
+String email = "fan_cq@tedu.cn";
+
+String regex = "[a-zA-Z0-9_]+@[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+";
+boolean matches = email.matches(regex);
+if (matches) {
+    System.out.println("是邮箱");
+} else {
+    System.out.println("不是邮箱");
+}
+```
+
+###### `String[] split(String regex)`  --- 拆分
+
+String 的 `split()` 方法可以将字符串按照特定的分隔符，拆分成字符串数组。
+
+若连续匹配到正则表达式，对于开头和中间，会拆出空字符串；对于末尾，会忽略掉。
+
+```java
+String str = "abc123def456ghi";
+// 按照数字部分进行拆分，得到所有的字母部分
+String[] data = str.split("[0-9]+");
+System.out.println(data.length);
+System.out.println(Arrays.toString(data)); //[abc, def, ghi]
+
+/**
+ * 连续匹配到正则表达式，对于开头和中间，会拆出空字符串；对于末尾，会忽略掉。
+ */
+str = ".a...b.c.d.e.f...";
+data = str.split("\\.");
+System.out.println(data.length);
+System.out.println(Arrays.toString(data)); //[, a, , , b, c, d, e, f]
+```
+
+###### `String replaceAll(String regex, String str)`  --- 替换
+
+使用目标字符串替换所有满足正则表达式的部分。
+
+```java
+String str = "abc123def456ghi";
+// 将数字部分替换为"#number"
+str = str.replaceAll("[0-9]+", "#number");
+System.out.println(str);
+
+/**
+ * 和谐用语
+ */
+
+String regex = "(wqnmlgb|dsb|mdzz|nmsl|wrsndm|cnm|nc|djb)";
+String message ="wqnmlgb!你个dsb!你怎么这么的nc,你就是一个djb";
+message = message.replaceAll(regex, "***");
+System.out.println(message);
+```
+
+
+
+#### 五、Object 
+
+在 Java 类继承结构中，`java.lang.Object`类位于顶端；
+
+如果定义一个 Java 类时，没有使用 __extends__ 关键字声明其父类，则其父类默认为 java.lang.Object 类。
+
+Object 类型的引用 可以指向 任何类型的对象。
+
+> `System.out.println(Object o)`输出该对象`toString()`方法返回的字符串。
+
+##### toString()方法
+
+toString()方法是 Object 类中定义的重要方法，返回当前对象的字符串表示。Object类中，这个方法的默认实现是：返回对象的地址信息，格式为：`类名@地址`。
+
+###### 原则上建议重写，格式大多遵循`类名[字段值]`
+
+- Java 语言中很多地方会默认调用对象的 toString() 方法：
+  + 字符串 + 对象，自动调用对象的 toString() 方法
+  + System.out.println(任意对象), 直接调用 toString() 方法
+- 如果不重写 toString() 方法，将使用 Object 的 toString() 方法，其格式为`类名@散列码`
+- toString 方法是非常有用的调试工具；
+- JDK中的标准类库中，许多类都定义了 toString 方法，方便用户获得有关对象状态的必要信息。
+- 强烈建议为自定义的每一个类增加 toString 方法。
+
+##### equals(Object o)方法
+
+- Object 类中，还有一个 equals() 方法，作用是检测一个对象是否等于另外一个对象。
+- 在 Object 类中，这个方法判断两个对象是够具有相同的引用，即是否为相同的对象。
+- 在实际应用中，一般需要重写该方法，通过比较对象的成员属性，使该方法更有意义。
+
+
+##### equals() 和 == 的区别
+
+- `==` 用于比较变量的值，可以应用于任何类型。如果用于引用类型，比较的是两个引用变量中存储的值（地址信息）是否相等，即判断两个变量是否指向相同的对象。
+- `equals()`是 Object 的方法，默认的 equals 方法的比较规则与 == 相同。重写以后，可以用于比较两个对象的内容是否相等。
+
+```java
+package object;
+
+import java.util.Objects;
+
+/**
+ * 利用这个类测试子类重写Object中定义的方法
+ */
+public class Point {
+    private int x;
+    private int y;
+
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Point point = (Point) o;
+        return x == point.x && y == point.y;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
+    }
+}
+
+```
+
+
+
+```java
+package object;
+
+/**
+ * 测试重写后的toString()和equals()方法
+ */
+public class Test {
+    public static void main(String[] args) {
+        Point p = new Point(1,2);
+        // 向控制台输出p对象
+        System.out.println(p);
+        /**
+         * toString()方法是 Object 类中定义的重要方法，返回当前对象的字符串表示。
+         * Object类中，这个方法的默认实现是：返回对象的地址信息，格式为：`类名@地址`。
+         */
+        String str = p.toString();
+        System.out.println(str);
+
+        Point p1 = new Point(1,1);
+        Point p2 = new Point(1, 1);
+        System.out.println(p1 == p2);
+        System.out.println(p1.equals(p2));
+
+
+    }
+}
+```
+
+### 
+
+
+
+### day03 包装类 File类
+
+#### 一、包装类
+
+包装类为基本类型添加了面向对象的功能。
+
+- 在进行类型转换的范畴内，有一种搞特殊的转换，需要将 int 这样的基本数据类型转换为对象；
+- 所有基本类型都有一个与之对应的类，即包装类(Wrapper)
+- 包装类是不可变类，在构造了包装类的对象后，不允许更改其中的值。
+- 包装类被 final 修饰，不允许被继承。
+
+| 基本类型 | 包装类              | 包装类的父类     |
+| :------- | :------------------ | :--------------- |
+| byte     | java.lang.Byte      | java.lang.Number |
+| short    | java.lang.Short     | java.lang.Number |
+| int      | java.lang.Integer   | java.lang.Number |
+| long     | java.lang.Long      | java.lang.Number |
+| float    | java.lang.Float     | java.lang.Number |
+| double   | java.lang.Double    | java.lang.Number |
+| char     | java.lang.Character | java.lang.Object |
+| boolean  | java.lang.Boolean   | java.lang.Object |
+
+数字类型有一个统一的包装类 Number，布尔和字符的包装类则直接继承自 Object。
+
+#### 二、Number 及其主要方法
+
+- 抽象类 Number 是 Byte、Short、Integer、Long、Float、Double 的父类；
+- Number 的子类必须提供将表示的数值转化为对应基本类型的方法：
+
+```java
+包装类的实例对象.xxxValue();
+```
+
+- 还提供了将基本类型转换为包装类的静态方法`XXX.parseXXX()`.
+- Number 类型的包装类提供了最大值和最小值的静态常量
+
+```java
+static 包装类对应的基本类型 MAX_VALUE;
+static 包装类对应的基本类型 MIN_VALUE;
+```
+
+##### equals 比较的是 xxxValue()
+
+```java
+public boolean equals(Object obj) {
+    if (obj instanceof Integer) {
+        return value == ((Integer)obj).intValue();
+    }
+    return false;
+}
+```
+
+
+##### 自动装箱和拆箱
+
+**自动拆装箱**是在 **基本数据类型**和其对应的 **包装类**之间，进行自动地类型转换。
+
+是从 JDK 1.5 开始的。
+
+**装箱和拆箱是编译器认可的，而不是虚拟机。**编译器在生成类的字节码文件时，插入必要的方法调用。
+
+```java
+Integer a = 100; // 自动装箱
+/**
+ * 编译器实际长会添加一些方法调用，实际上编译器，编译的是：
+ */
+Integer a = Integer.valueOf(100);
+```
+
+
+
+#### 二、File类
+
+java.io.File 表示文件系统中的一个文件或目录，实际上表示的是一个路径。
+
+通过 File 类，我们可以：
+
+1. 访问文件或目录的属性
+2. 创建和删除文件和目录
+3. 访问目录中的所有子项
+
+但是不能：
+
+- 对文件的内容进行访问（由其它API负责）。
+
+##### 构造方法
+
+###### File(String pathname)
+
+- 通过 给定路径名字符串 转换成 抽象路径来创建一个新 File 实例。
+- 抽象路径应尽量使用相对路径，并且目录的层级分隔符不要直接写`/`或`\`, 应该使用`File.separator`这个常量表示，以避免不同系统带来的差异。
+
+###### File(File parent, String Child)
+
+File 还提供了另一个构造方法：`File(File parent, String Child)`，根据 parent 抽象路径名和 child 路径名字符串创建一个新 File 实例。
+
+```java
+
+```
+
+##### 其他方法
+
+`String getName()` 获取文件的名字.
+
+`long length()`  返回文件的长度，即文件所占的字节量。
+
+`boolean canRead()` 判断文件是否可读
+
+`boolean canWrite()`判断文件是否可写
+
+`boolean canExecute()`判断文件是否可执行
+
+`boolean isHidden()`判断文件是否隐藏
+
+`boolean isFile()`  判断当前 File 对象所表示的是否为一个文件。
+
+`boolean isDirectory()` 判断当前 File 表示的是否为一个目录。
+
+`boolean createNewFile()` 当不存在这个文件时，就创建这个文件。成功创建，则返回`true`.
+
+`void delete()`  删除 此抽象路径名表示的文件或目录。成功删除，就返回`true`. 删除目录时，要确保删除的目录为一个空目录。
+
+##### 当 File 为一个目录时
+
+`mkdir()` 创建一个目录
+
+`mkdirs()`创建指定路径的目录，即便他的父目录不存在。
+
+`delete()` 删除目录，要求目录下没有其他目录或文件，才能删除成功。
+
+`File[] listFiles()`返回一个抽象路径名数组，这些抽象路径为路径名的子项。子项有可能是个文件也有可能是个目录。
+
+- 如果目录下面是空的，就返回一个空数组
+- 如果目录不存在，就返回一个 null.
+- 如果发生了 I/O 错误，也返回 null.
+
+
+##### FileFilter 接口
+
+- 路径名的过滤器
+- 此接口的实例对象可以作为参数，传入`File listFiles()`方法，用来过滤子级文件。
+
+
+
+#### 三、Lambda表达式
+
+JDK8之后，Java支持了Lambda表达式这个特性。
+
+- lambda表达式可以用更精简的代码创建匿名内部类，但是该匿名内部类实现的接口中只能有一个抽象方法，否则会报错。
+- lambda表达式是编译器认可的，最终将源代码改写为匿名内部类的形式，编译到`.class`文件中。
 
