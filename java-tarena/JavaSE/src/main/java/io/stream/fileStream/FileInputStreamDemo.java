@@ -10,12 +10,27 @@ import java.io.IOException;
  */
 public class FileInputStreamDemo {
 	public static void main(String[] args) throws IOException {
-		FileInputStream fis = new FileInputStream("fos.txt");
-		byte[] bytes = new byte[1000];
-		int len = fis.read(bytes);
-		System.out.println("实际读取到的字节："+len);
-		String str = new String(bytes, "UTF-8");
-		System.out.println("读取到的字符串:" + str);
-		fis.close();
+		FileInputStream fis = new FileInputStream("fos.dat");
+		/**
+		 * fos.dat: 0000000100000010
+		 * 			^^^^^^^^
+		 * d: 00000000 00000000 00000000 00000001   = 1
+		 */
+		int d = fis.read();
+		System.out.println(d);
+		/**
+		 * fos.dat: 0000000100000010
+		 * 			        ^^^^^^^^
+		 * d: 00000000 00000000 00000000 00000010   = 2
+		 */
+		d = fis.read();
+		System.out.println(d);
+		/**
+		 * fos.dat: 0000000100000010
+		 * 							^^^^^^^^
+		 * d: 11111111 11111111 11111111 11111111  = -1
+		 */
+		d = fis.read();   // -1, 表示文件末尾
+		System.out.println(d);
 	}
 }
