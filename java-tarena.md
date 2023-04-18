@@ -4809,14 +4809,6 @@ pw.close();
 
 
 
-
-
-
-
-
-
-
-
 ###### 案例：简易记事本
 
 * 程序启动后要求用户在控制台先输入文件名，然后对该文件写操作。
@@ -4903,6 +4895,419 @@ public class BufferedReaderDemo {
 	}
 }
 ```
+
+
+
+### day06 异常处理
+
+####  一、`Throwable`, `Error` 和 `Exception`
+
+- Throwable 可抛出的，是 Java 异常体系中的最高父类，有两个派生类 Erorr 和 Exception.
+- Error 系统级别的错误，虚拟机相关，比如系统崩溃，内存泄漏等。编译器不会对这类错误进行检测，程序中也不应该捕获错误。出现了我们拿他也没办法，程序会被终止运行。
+- Exception 程序级别的异常，可以在程序中进行捕获，处理完后，程序还是能跑的。
+
+> Exception 像是人生中遇到的挫折，跌倒了，爬起来，人生道路还是可以继续的。Error 则像是彗星撞地球，除了 Go Die， 别无选择。
+
+#### 二、受查异常和非受查异常
+
+- 受查异常：编译器会进行检查。
+  + 如果一个方法中的代码可能会抛出受查异常，我们
+    * 要么自己 try-catch 捕获处理
+    * 要么在方法签名中使用 throws 声明自己有可能抛出异常，交给别人处理
+  + 如果一个段代码不会抛出某一类型的受查异常，而你捕获了该类型的受查异常。编译器也会报错。
+- 非受查异常：编译器不会进行检查。Error 和 RuntimeException 都是非受查异常。
+  + 常见的 RuntimeException:
+    * ClassCastException
+    * IndexOutOfBoundsException
+    * NullPointerException
+    * IllegalArgumentException
+    * NumberFormatException
+
+#### 三、异常的抛出与捕获
+
+##### （一）try-catch捕获处理
+
+- 可以定义多个`catch`，捕获不同的异常并进行处理。
+
+- 当多个异常的解决办法相同时，可以使用同一个`catch`。
+
+- 可以在最后捕获一个`Exception`,对其它有可能出现的异常进行处理，避免程序中断。
+
+- 当JVM执行程序遇到异常时，就会实例化该异常并将其抛出。
+
+  
+
+```java
+package exception;
+
+public class TryCatchDemo {
+    public static void main(String[] args) {
+        System.out.println("程序开始了。。。。。。");
+        try {
+//            String string = null;
+//            String string = "";
+            String string = "a";
+            System.out.println(string.length());
+            System.out.println(string.charAt(0));
+
+            System.out.println(Integer.parseInt(string));
+
+            System.out.println("这句话不会执行！！！！！");
+//        } catch (NullPointerException e) {
+//            System.out.println("出现了空指针！");
+//        } catch (StringIndexOutOfBoundsException e) {
+//            System.out.println("出现了字符串的下标越界");
+        } catch (NullPointerException | StringIndexOutOfBoundsException e) {
+            System.out.println("出现了空指针或下标越界异常的统一解决办法！");
+        } catch (Exception e) {
+            System.out.println("反正就是出了个错！");
+        }
+
+        System.out.println("程序结束了。。。。。。");
+    }
+}
+
+```
+
+```
+程序开始了。。。。。。
+1
+a
+反正就是出了个错！
+程序结束了。。。。。。
+
+```
+
+###### try-catch-finally
+
+1. 不管`try`中代码有没有抛出异常，`finally`中的代码一定执行。
+1. 即便`try`中代码有`return`,`finally`中的代码也一定会执行。
+
+```java
+package exception;
+
+public class TryCatchFinallyDemo {
+    public static void main(String[] args) {
+        System.out.println("程序开始了");
+        try {
+            String str = "123";
+            System.out.println(Integer.parseInt(str));
+            return;
+        } catch (Exception e) {
+            System.out.println("出错了");
+        } finally {
+            System.out.println("finally中的代码执行了");
+        }
+
+
+
+        System.out.println("程序结束了");
+    }
+}
+
+```
+
+```
+程序开始了
+123
+finally中的代码执行了
+
+```
+
+3. finally 经常用于关闭资源。
+
+```java
+package exception;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class TryCatchFinllayDemo2 {
+    public static void main(String[] args) {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream("fos.dat");
+            fos.write(1);
+            System.out.println("成功写了一个 1 对应的 二进制低八位");
+        } catch (IOException e) {
+            System.out.println("出错了！");
+        } finally {
+            try {
+                if (fos != null) { // fos有可能实例化不成功，就会等于null
+                    fos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+4. JDK 1.7 开始，`AutoCloseable` 的实现类，可以写在括号中，自动关闭。这就不需要写 `finally` 了。
+
+```java
+package exception;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class AutoCloseableDemo {
+    public static void main(String[] args) {
+        try (FileOutputStream fos = new FileOutputStream("fos.dat");) {
+            fos.write(0);
+        } catch (IOException e) { 
+            e.printStackTrace();
+        } // ! 不需要 finally.
+    }
+}
+```
+
+编译器最终会将上述代码改为**TryCatchFinllayDemo2**中那样的代码。只有实现了AutoCloseable 接口的类，才能写在`try`后的`()`中。
+
+
+
+##### final、finally、finalize的辨析
+
+- final 用于声明属性、方法和类。分别表示属性不可变，方法不可被重写，类不可被继承。
+- finally 是异常处理结构的一部分。表示最终一定会执行。
+- finalize 是 Object类的一个方法，垃圾回收器销毁该对象前，会调用这个方法。可以重写这个方法，关闭一些资源等，但不能有好事操作，会影响GC的工作。JVM不保证此方法一定会被执行。
+
+
+
+###### finally中的`return`语句
+
+```java
+package exception;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class TryCatchFinllayDemo3 {
+    public static void main(String[] args) {
+        System.out.println(
+                test("0") + "," + test(null) + "," +  test("")
+        ); //3,3,3
+    }
+    public static int test(String str) {
+        try {
+            return str.charAt(0) - '0';
+        } catch (NullPointerException e) {
+            return 1;
+        } catch (Exception e) {
+            return 2;
+        } finally {
+            return 3;
+        }
+    }
+}
+```
+
+
+
+##### （二）主动抛出
+
+1. 有时候，发生的异常无法在当前位置处理，或者不适合在当前位置处理。就把异常向外抛出，让别的类去处理。
+
+2. 有时候，用户传入的数据不满足业务逻辑，也可以抛出异常。
+
+使用用 `throw` 关键字，抛出一个异常。
+
+```java
+package exception;
+
+public class Person {
+    private int age;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        if(age<0 || age>100) {
+            throw new RuntimeException("年龄不合法");
+        }
+        this.age = age;
+    }
+    
+}
+```
+
+#### try-catch
+
+```java
+package exception;
+
+public class ThrowDemo {
+    public static void main(String[] args) {
+        Person p = new Person();
+        // 满足语法但是不满足业务逻辑
+        try {
+            p.setAge(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        System.out.println(p.getAge());
+    }
+}
+```
+
+##### （三）声明为可能抛出异常的方法
+
+`throws` 声明方法有可能抛出异常。
+
+```java
+package exception;
+
+public class ThrowsDemo {
+
+    public static void main(String[] args) throws Exception {
+        Person p = new Person();
+        // 满足语法但是不满足业务逻辑
+        p.setAge(10000);
+        System.out.println(p.getAge());
+    }
+}
+```
+
+
+
+#### 四、异常 API
+
+1. `printStackTrace()` 打印异常位置和原因。
+
+```java
+package exception;
+
+public class ExceptionAPIDemo {
+    public static void main(String[] args) {
+        System.out.println("程序开始了");
+        try {
+            String str = "a";
+            System.out.println(Integer.parseInt(str));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("程序结束了");
+    }
+}
+```
+
+控制台输出：
+
+```
+程序开始了
+java.lang.NumberFormatException: For input string: "a"
+程序结束了
+    at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+    at java.lang.Integer.parseInt(Integer.java:580)
+    at java.lang.Integer.parseInt(Integer.java:615)
+    at exception.ExceptionAPIDemo.main(ExceptionAPIDemo.java:8)
+```
+
+
+#### 五、自定义异常
+
+自定义异常通常用于定义 业务逻辑错误。
+
+Source -> Generate Constructors from SuperClass.
+
+```java
+package exception;
+
+public class IllegalAgeException extends Exception {
+    
+    private static final long serialVersionUID = 1L;
+    
+    public IllegalAgeException() {
+        super();
+    }
+
+    public IllegalAgeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public IllegalAgeException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public IllegalAgeException(String message) {
+        super(message);
+    }
+
+    public IllegalAgeException(Throwable cause) {
+        super(cause);
+    }
+
+
+}
+```
+
+异常实现了序列化接口。
+
+```java
+public class Exception extends Throwable {}
+public class Throwable implements Serializable {}
+```
+
+Person.java 中更改抛出异常的类型。
+
+```java
+package exception;
+
+public class Person {
+    private int age;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) throws IllegalAgeException {
+        if(age<0 || age>100) {
+            throw new IllegalAgeException("年龄不合法");
+        }
+        this.age = age;
+    }
+    
+}
+```
+
+ThrowDemo.java 中 捕获`IllegalAgeException`.
+
+```java
+package exception;
+
+public class ThrowDemo {
+    public static void main(String[] args) {
+        Person p = new Person();
+        // 满足语法但是不满足业务逻辑
+        try {
+            p.setAge(10000);
+        } catch (IllegalAgeException e) {
+            e.printStackTrace();
+        }
+        
+        System.out.println(p.getAge());
+    }
+}
+```
+
+控制台输出：
+
+```java
+exception.IllegalAgeException: 年龄不合法
+0
+    at exception.Person.setAge(Person.java:12)
+    at exception.ThrowDemo.main(ThrowDemo.java:8)
+
+```
+
+
+
+
+
+
 
 
 
