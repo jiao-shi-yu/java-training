@@ -16,7 +16,7 @@ public class InputStreamReaderDemo {
 		int d = 0;
 		while((d=reader.read())!=-1) {
 			char c = (char)d;
-			System.out.println(c);
+			System.out.print(c);
 		}
 		reader.close();
 	}

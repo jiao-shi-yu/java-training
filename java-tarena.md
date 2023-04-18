@@ -3930,6 +3930,52 @@ public class LambdaDemo {
 
 
 
+#### 四、RandomAccessFile
+
+Java 提供了一个可以对文件随机访问的操作，访问包括读和写操作。该类型为 RandomAccessFile.该类的读写，是基于指针的操作。
+
+构造器里面传入一个 File 对象。
+
+需要注意的是 RandomAccessFile 无论读取还是写入数据，都是从指针处开始的。
+
+##### 模式
+
+RandomAccessFile 在堆文件进行随机访问操作时，有两个模式，分别为只读模糊(只读取文件数据), 和读写模式(对文件数据进行读写)。
+
+- 只读模式：在创建 RandomAccessFile 时，其提供的构造方法要求我们传入访问模式。
+  + `RandomAccessFile(File file, String mode)`
+  + `RandomAccessFile(String fileName, String mode);`
+  + 第一个参数是文件或文件路径名。第二个参数就是读写模式。
+- 读写模式：第二个参数传入`rw`.
+
+
+##### 读写字节
+
+`write(int d)`: 在当前指针所在位置处写入一个字节，将 int 的"低8位"写出。
+
+`int read();`：该方法会从文件中读取一个 byte 填充到 int 的低8位。一个 int 是32位，前面的24位，用0填充。所以返回的数值是 0 到 255的 int 型数值。如果返回-1，表示读取到了文件末尾。
+
+
+`write(byte[] d)`：参数是字节的数组，作用是把数组中的每个字节，都写出。
+
+与之类似的还有一个常用方法`write(byte[] d, int offset, int len)`
+该方法会把字节数组的一部分字节写到文件中，这一部分是从 offset 位置开始，长度为 len 的一段字节。
+
+`read(byte[] b)`方法：
+会从指针处开始，读取字节，将读取到的字节放到`byte[] b`数组中，返回值是 读取到的字节长度。
+
+
+##### 文件指针操作
+
+- `long getFilePointer()` 获取文件指针位置
+- `void seek(long position)` 将指针移动到指定位置 
+- `skipBytes()` 跳过字节
+
+
+##### 关闭
+
+`void close()`关闭，以释放系统资源。
+
 
 
 ### day04 输入输出流、字节流
@@ -4298,9 +4344,56 @@ BufferedOutputStream 缓冲输出流，内部维护着一个缓冲区。每当�
 ###### BufferedOutputStream 的flush()方法
 
 使用缓冲输出流可以提高写出效率，却也存在着缺乏即时性的问题。
-某些应用场景下，对于某些写出操作，我们希望立即将这些数据写出，而不是等到缓冲区满后才写出。这时，就可以调用缓冲流的一个方法 flush();（flush--直接的，紧接着）
+
+例如，执行以下代码：
+
+```java
+        FileOutputStream fos = new FileOutputStream("bosflush.txt");
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+        String str = "让我再看你一眼，从南到北";
+        byte[] bytes = str.getBytes("UTF-8");
+        bos.write(bytes);
+
+
+        System.out.println("写出完毕");
+
+```
+
+会发现，确实创建了一个`bosflush.txt`文件。但是，打开文件，里面并没有任何文字。因为数据还在缓存中还没有满，就没有输出。
+
+某些应用场景下，对于某些写出操作，我们希望立即将这些数据写出，而不是等到缓冲区满后才写出。这时，就可以调用缓冲流的一个方法` flush()`.（flush--直接的，紧接着）
 
 `void flush()` 将缓冲区的数据强制写出。
+
+```java
+public static void main(String[] args) throws IOException {
+    FileOutputStream fos = new FileOutputStream("bosflush.txt");
+    BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+    String str = "让我再看你一眼，从南到北";
+    byte[] bytes = str.getBytes("UTF-8");
+    bos.write(bytes);
+    // flush()方法，将缓冲区的数据强制写出。
+		bos.flush();
+    System.out.println("写出完毕");
+    bos.close();
+}
+```
+
+执行以上代码，发现`bosflush.txt`中出现了我们想要的文字：`让我再看你一眼，从南到北`.
+
+`void close()` 方法，会调用一次`flush()`.
+
+```java
+public void close() throws IOException {
+    try (OutputStream ostream = out) {
+        flush();
+    }
+}
+```
+
+
 
 ##### BufferedInputStream 缓冲输入流
 
@@ -4311,8 +4404,6 @@ BufferedOutputStream 缓冲输出流，内部维护着一个缓冲区。每当�
 BufferedInputStream 是缓冲字节输入流。内部维护一个缓冲区（字节数组），在读取字节时，会一次性读取若干个字节，存入缓冲区。缓冲区满了之后，就会存到内存中，缓存区再次使用。
 
 BufferedInputStream 是一个 处理流，该流为我们提供了缓冲功能。
-
-
 
 ```java
 	public static void main(String[] args) throws IOException {
@@ -4342,22 +4433,125 @@ BufferedInputStream 是一个 处理流，该流为我们提供了缓冲功能�
 
 
 
-#### day05 对象流
+### day05 对象流 字符流
 
-##### 对象序列化的概念
+#### 一、对象序列化的概念
 
-对象是存在于内存中的。有时候我们需要将对象保存到硬盘上，又有时候，我们需要将对象传输到另一台计算机上。这是我们需要将对象转换为一个字节序列，而这个过程就称为对象的序列化。  
+对象是存在于内存中的。有时候我们需要将对象保存到硬盘上，又有时候，我们需要将对象传输到另一台计算机上。这是我们需要**将对象转换为一个字节序列**，而这个过程就称为对象的序列化。  
 
-将这样一个字节序列转换为对应的对象的过程称为反序列化。
+将这样一个**字节序列转换为对应的对象的过程**称为反序列化。
 
 ```
 对象 →  序列化  → 字节序列
 对象 ← 反序列化 ← 字节序列
 ```
 
+#### 二、Serializable 接口
+
+ObjectOutputStream 在对象进行序列化有一个要求。就是需要序列化的对象所属的类必须实现 Serializable 接口。Serializable 接口里面，完全是空的，就是为了标明这个类可以被实例化。
+
+##### SerialVersionUID
+
+实现了该接口的类，通常需要提供一个常量 `serialVersionUID`来表示该类的版本。不显式地声明，也会提供默认的 `serialVersionUID`。不同平台编译器实现有所不同，所以若想跨平台，就应该显式地声明 `serialVersionUID`.
+
+如果声明的类的对象序列化存到硬盘上，之后随着需求的变化，更改了类的属性（添加或减少或改名），当反序列化是就会出现 `InvalidClassException`.
+
+但只要 `serialVersionUID` 是相同的。这时候他就会将不一样的 `field` 设置为默认值，这样就提高了兼容性。
+
+##### `transient`关键字
+
+对象在序列化后得到的字节序列往往比较大，有时我们希望它小一点，只序列化关键的属性，不重要的属性可以忽略。可以使用关键字 `transient` 忽略不必要的属性，从而对序列化后得到的字节序列“**瘦身**”。
+
+```java
+package io.stream.object;
+
+import java.io.Serializable;
+import java.util.Arrays;
+
+/**
+ * 用来测试对象流的读写操作
+ * 
+ * 对象流读写的对象，对应类必须实现 Serializable 接口。
+ * 
+ * Serializable 接口里面，完全是空的，就是为了标明这个类可以被实例化。
+ * 
+ *
+ */
+public class Person implements Serializable {
+	
+	/**
+	 * 自动生成的一个版本 ID，
+	 * 即便这个类后面增加了新的属性，
+	 * 进行反序列化的时候，只要这个版本 ID 对的上就行。
+	 * 对于新增的属性，会用新增属性类型的默认值来填充。
+	 */
+	private static final long serialVersionUID = -7278098754284076983L;
+	private String name;
+	private int age;
+	private String gender;
+	
+	/**
+	 * transient 关键字
+	 * 被 transient 关键字修饰的属性，在序列化时会被忽略。
+	 * 忽略不必要的属性，序列化的到的字节文件就会变小，减少资源开销。
+	 */
+	private transient String[] otherInfo;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String[] getOtherInfo() {
+		return otherInfo;
+	}
+
+	public void setOtherInfo(String[] otherInfo) {
+		this.otherInfo = otherInfo;
+	}
+	
+	public Person(String name, int age, String gender) {
+		super();
+		this.name = name;
+		this.age = age;
+		this.gender = gender;
+	}
+
+	@Override
+	public String toString() {
+		return "Person [name=" + name + ", age=" + age + ", gender=" + gender + ", otherInfo="
+				+ Arrays.toString(otherInfo) + "]";
+	}
+	
+	
+}
+
+```
 
 
-##### ObjectOutputStream
+
+#### 三、序列化
+
+##### ObjectOutputStream 对象输出流
 
 ObjectOutputStream 是用来把对象进行序列化的输出流。
 
@@ -4366,7 +4560,37 @@ ObjectOutputStream 是用来把对象进行序列化的输出流。
 
 该方法可以将对象转换为一个字节序列后写出。
 
-##### ObjectInputStream
+```java
+/**
+ * 对象流是一对高级流，将对象进行序列化与反序列化。
+ * 只管调用 wirteObject 方法就行，具体的工程有 Java 帮我们实现。
+ * @author yuyu
+ *
+ */
+public class ObjectOutputStreamDemo {
+	
+	
+	public static void main(String[] args) throws IOException {
+		Person gewei  = new Person("戈薇", 15, "女");
+		
+		System.out.println(gewei);
+		
+		FileOutputStream fos = new FileOutputStream("gewei.obj");
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		
+		oos.writeObject(gewei);
+		
+		System.out.println("写出完毕");
+		oos.close();
+		
+	}
+}
+
+```
+
+#### 四、反序列化
+
+##### ObjectInputStream 对象输入流
 
 ObjectInputStream 是用来将对象字节进行反序列化的输入流。
 
@@ -4374,31 +4598,321 @@ ObjectInputStream 是用来将对象字节进行反序列化的输入流。
 `Object readObject()`
 该方法可以从流中读取字节并转换为对应的对象。
 
+```java
+public class ObjectInputStreamDemo {
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		FileInputStream fis = new FileInputStream("gewei.obj");
+		ObjectInputStream objectInputStream = new ObjectInputStream(fis);
+		/**
+		 * Object readObject()
+		 * 将读取到的字节按照其结构还原为 java 对象的过程，称为对象的反序列化。
+		 */
+		Person p = (Person)objectInputStream.readObject();
+		System.out.println(p); //Person [name=戈薇, age=15, gender=女, otherInfo=null]
+		objectInputStream.close();
+	}
+}
+
+```
 
 
-#### Serializable 接口
 
-ObjectOutputStream在对象进行序列化是有一个要求。
-就是需要序列化的对象所属的类必须实现 Serializable 接口。
+#### 五、字符流
 
-实现接口不需要重写任何方法。只是作为可以被序列化的一个标志。
+**InputStream**和**OutputStream**是字节流的超类。
 
-实现了该接口的类，通常需要提供一个常量 serialVersionUID
-来表示该类的版本。不显式地声明，也会提供默认的 serialVersionUID.
-不同平台编译器实现有所不同，所以若想跨平台，就应该显式地声明serialVersionUID.
+**Reader**和**Writer**是字符流的超类。字符流 **Reader** 和 **Writer**。
 
-如果声明的类的对象序列化存到硬盘上，之后随着需求的变化，更改了类的属性（添加或减少或改名），当反序列化是就会出现 `InvalidClassException`.
+**Reader** 是字符输入流的父类；**Writer** 是字符输出流的父类。
 
-但只要 `serialVersionUID` 是相同的。这时候他就会将不一样的 `field`。 
-设置为默认值，这样就提高了兼容性。
+**字符流是以字符(char)为单位读写数据的。一次处理一个 unicode**。
 
 
 
-#### transient 关键字
+字符流的底层，仍然是基本的字节流。一个 Reader 可以连接一个 **InputStream**。一个 **Writer** 可以连接一个 **OutputStream**。
 
-对象在序列化后得到的字节序列往往比较大，有时我们在序列化一个对象时，可以忽略默写不必要的属性，从而对序列化后得到的字节序列“瘦身”。
+**字符流封装了字符的编解码算法。**
 
-使用关键字 transient 忽略不必要的属性。
+##### Reader 常用方法
+
+- `int read()`:读取一个字符，将字符的 unicode 编码存到 int 返回值的“低 16 位”。
+- `int read(char[] chs)`：从流中读取数组长度的字符，并将读到的字符存入 `char[]`数组。返回值为 实际读取到的字符量。
+
+
+##### Writer 常用方法
+
+- `void write(int c)`: 写出一个字符，写出给定 int 值“低 16位”表示的字符。
+- `void write(char[] chs)`: 将给定字符数组中所有字符写出。
+- `void write(String str)`: 将给定的字符串写出。
+- `void write(char[] chs, int offset, int len)`: 根据起始位置(偏移)和长度，把字符数组中的部分字符写出。
+
+
+
+#### 字符转换流
+
+##### 字符输入流 InputStreamReader
+
+使用该流可以设置字符集，按照指定的字符集，把字节转换为字符并读取。
+
+- `InputStreamReader(InputStream in, String charsetName);`: 可以看到，字符流封装了一个字节流。
+- `InputStreamReader(InputStream in)`：不指定字符集，会用系统默认的字符集，创建一个字符输入流。
+
+##### 字符输出流 OutputStreamWriter
+
+可以设置字符集，按照设置的字符集将字符转换为字节，并写出。  
+
+- `OutputStreamWriter(OutputStream out, String charsetName)`
+
+不写的话，就按照系统默认的字符集来转换。
+
+- `OutputStreamWriter(OutputStream out)`
+
+
+
+> 转换流在实际开发中很少直接用到。但是它们是流连接当中非常重要的一环。
+>
+> 它们有两个重要的作用：
+>
+> 1. 衔接其他字符流与下面的字节流。
+> 2. 完成字符与字节的转换。
+
+
+
+###### 示例代码
+
+```java
+package io.readerWriter;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
+/**
+ * 字符流
+ * JavaIO将流按照读写单位划分为了字节流与字符流
+ * 字符流的超类：
+ * java.io.Writer：所有字符输入流的超类
+ * java.io.Reader：所有字符输出流的超类
+ * 
+ * 字符流底层实际还是读写字节，只不过他底层进行了字节字符的转换，让我们可以以 char 为单位，进行文本数据的读写。
+ * 字符流只适合读写文本数据。
+ * @author yuyu
+ *
+ */
+public class OutputStreamWriterDemo {
+	public static void main(String[] args) throws IOException {
+		FileOutputStream fos = new FileOutputStream("osw.txt");
+		/**
+		 * 常用构造方法
+		 * OutputStreamWriter(OutputStream out);
+		 * OutputStreamWriter(OutputStream out, String charsetName);
+		 */
+		OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos, "UTF-8");
+		outputStreamWriter.write("来，左边跟我一起画个龙");
+		outputStreamWriter.write("右边儿画一道彩虹");
+		
+		outputStreamWriter.close();
+		System.out.println("写出完毕");
+		
+	}
+}
+```
+
+```java
+package io.readerWriter;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class InputStreamReaderDemo {
+	public static void main(String[] args) throws IOException {
+		FileInputStream inputStream = new FileInputStream("osw.txt");
+		InputStreamReader reader = new InputStreamReader(inputStream);
+		
+		/**
+		 * int read()
+		 * 读取一个字符，以 Unicode 码对应的 10 进制数返回。 -1 表示 EOF
+		 */
+		int d = 0;
+		while((d=reader.read())!=-1) {
+			char c = (char)d;
+			System.out.print(c);
+		}
+		reader.close();
+	}
+}
+
+```
+
+```
+来，左边跟我一起画个龙右边儿画一道彩虹
+```
+
+
+
+#### PrintWriter 高级字符输出流
+
+
+PrintWriter 是具有**自动行刷新的字符输出流**。它提供了比较丰富的构造方法。
+
+- `PrintWriter(File file)`
+- `PrintWriter(String fileName)`
+- `PrintWriter(OutputStream out)`
+- `PrintWriter(OutputStream out, boolean autoFlush)`
+- `PrintWriter(Writer writer)`
+- `PrintWriter(Writer writer, boolean autoFlush)`
+
+以上方法的参数中，有File对象、文件路径名、字节输出流、字符输出流等。
+
+其中，参数为字节流 **OutputStream** 和 **字符流 Writer** 的构造方法有一个 `boolean autoFlush` 参数，该参数表示 **PrintWriter** 是否为__自动行刷新__。
+
+
+##### print() 与 println() 方法
+
+**PrintWriter** 提供了丰富的重载 `print()` 与 `println()` 方法。
+其中 println 方法会在输出目标数据后自动输出一个系统支持的换行符。
+
+若该流是自动行刷新的，那么每当使用 `println()` 方法写出数据时，写出的内容都会被实际写出，而不是进行缓存。
+
+常用方法：
+
+- `void print(int i )`：打印整数
+- `void print(char c)`：打印字符
+- `void print(boolean b)`：打印布尔值
+- `void print(char[] c)`：打印字符数组
+- `void print(double d)`：打印浮点值
+- float
+- long 
+- String
+
+
+
+###### 示例代码：
+
+```java
+FileOutputStream fos = new FileOutputStream("pw2.txt");
+OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
+BufferedWriter bw = new BufferedWriter(osw);
+PrintWriter pw = new PrintWriter(bw);
+
+pw.println("卧槽");
+pw.println("无情");
+pw.println("好残忍");
+pw.println("你没有活，就是呆着");
+System.out.println("写出完毕！");
+pw.close();
+```
+
+###### 图解
+![](./doc-images/printWriter.png)
+
+
+
+
+
+
+
+
+
+
+
+###### 案例：简易记事本
+
+* 程序启动后要求用户在控制台先输入文件名，然后对该文件写操作。
+* 之后用户在控制台输入的每一行字符串都按行写入到该文件。
+* 输出 q ，退出程序。
+
+```java
+/**
+ * 简易记事本工具
+ * 程序启动后要求用户在控制台先输入文件名，然后对该文件写操作。
+ * 之后用户在控制台输入的每一行字符串都按行写入到该文件。
+ * @author yuyu
+ *
+ */
+public class Note {
+	public static void main(String[] args) throws IOException {
+		System.out.print("请输入文件名：\n> ");
+		Scanner scanner = new Scanner(System.in);
+		String fileName = scanner.nextLine();
+		
+		PrintWriter pw = new PrintWriter(fileName);
+		int lineNumber = 1;
+		System.out.print("第" + lineNumber + "行> ");
+		String line = null;
+		while(!(line = scanner.nextLine()).equals("q")) {
+			pw.println(line);
+			lineNumber ++;
+			System.out.print("第" + lineNumber + "行> ");
+		};
+		scanner.close();
+		pw.close();
+		System.out.println("保存成功！");
+	}
+}
+
+```
+
+```
+请输入文件名：
+> 小明的日记.text
+第1行> 我喜欢小红，
+第2行> 嘻嘻
+第3行> 哈哈哈
+第4行> 哈哈哈哈
+第5行> 啦啦啦啦啦
+第6行> 醒醒
+第7行> q
+保存成功！
+
+```
+
+
+
+#### BufferedReader  缓冲字符输入流
+
+**BufferedReader** 是**缓冲字符串输入流**，其内部提供了缓冲区。可以提高读取效率。
+
+###### BufferedReader(Reader reader)
+
+看它的构造方法，嵌套连接一个`Reader`字符流对象。
+
+###### `String readLine()`
+
+该方法会连续**读取一行字符串**(到换行符为止)，并将其返回（不包含换行符）。
+
+如果读取到的是空行(只有一个换行符),则返回空字符串。
+
+若读取到了流的末尾则返回`null`.
+
+```java
+public class BufferedReaderDemo {
+	public static void main(String[] args) throws IOException {
+		FileInputStream fileIn = new FileInputStream("pw.txt");
+		InputStreamReader inReader = new InputStreamReader(fileIn, "UTF-8");
+		BufferedReader bufferedReader = new BufferedReader(inReader);
+		
+		String line = "";
+		while ((line = bufferedReader.readLine()) != null) {
+			System.out.println(line);
+		}
+		
+		bufferedReader.close();
+		System.out.println("\n读取完毕");
+	}
+}
+```
+
+
+
+
+
+
+
+
+
+
 
 
 

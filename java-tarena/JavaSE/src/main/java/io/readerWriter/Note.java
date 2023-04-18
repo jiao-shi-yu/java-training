@@ -18,13 +18,13 @@ public class Note {
 		String fileName = scanner.nextLine();
 		
 		PrintWriter pw = new PrintWriter(fileName);
-		int i = 1;
-		System.out.print("第" + i + "行> ");
+		int lineNumber = 1;
+		System.out.print("第" + lineNumber + "行> ");
 		String line = null;
 		while(!(line = scanner.nextLine()).equals("q")) {
 			pw.println(line);
-			i ++;
-			System.out.print("第" + i + "行> ");
+			lineNumber ++;
+			System.out.print("第" + lineNumber + "行> ");
 		};
 		scanner.close();
 		pw.close();

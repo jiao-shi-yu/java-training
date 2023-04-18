@@ -9,7 +9,7 @@ import java.util.Arrays;
  * 对象流读写的对象，对应类必须实现 Serializable 接口。
  * 
  * Serializable 接口里面，完全是空的，就是为了标明这个类可以被实例化。
- * @author yuyu
+ *
  *
  */
 public class Person implements Serializable {
