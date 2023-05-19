@@ -26,23 +26,33 @@ public class Server {
     }
     public void start() {
         try {
+
             while (true) {
+
                 System.out.println("等待客户端连接……");
                 Socket socket = serverSocket.accept();
                 System.out.println("一个客户端连接了！");
-            InputStream inputStream = socket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(inputStream);
-            BufferedReader bufferedReader = new BufferedReader(isr);
-            // 读取客户端发送的一行字符串
+                InputStream inputStream = socket.getInputStream();
+                InputStreamReader isr = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(isr);
 
 
-            String message;
-            while ((message = bufferedReader.readLine())!=null) {
-                System.out.println("客户端说：" + message);
+
+                String message;
+               /*
+                客户端如果调用 socket.close() 断开连接， 服务端这里的readline() 就会返回null,
+
+                客户端如果意外中断，那么服务端这边会抛异常。
+                */
+
+                while ((message = bufferedReader.readLine())!=null) {
+                    System.out.println("客户端说：" + message);
+                }
+
             }
-            }
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 

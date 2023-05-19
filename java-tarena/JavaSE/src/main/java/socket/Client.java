@@ -42,13 +42,13 @@ public class Client {
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 String line = scanner.nextLine();
-                if ("q".equals(line)) {
+                if ("exit".equals(line)) {
                     break;
                 }
                 pw.println(line);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } finally {
             try {
                 socket.close();

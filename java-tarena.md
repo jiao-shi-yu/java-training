@@ -5396,6 +5396,53 @@ ServerSocket(int port);
 
 
 
+#### 三、开发过程笔记
+
+###### 1. 创建服务端接收请求
+
+###### 2.创建一个客户端
+
+###### 3.尝试客户端向服务端发送消息,且服务端接收客服端的消息.
+
+###### 4.尝试服务端接收多个客户端的消息。
+
+> 在第四步时，写了如下代码：
+>
+> ```java
+> 
+> while (true) {
+> 
+>     System.out.println("等待客户端连接……");
+>     Socket socket = serverSocket.accept();
+>     System.out.println("一个客户端连接了！");
+>     InputStream inputStream = socket.getInputStream();
+>     InputStreamReader isr = new InputStreamReader(inputStream);
+>     BufferedReader bufferedReader = new BufferedReader(isr);
+> 
+> 
+> 
+>     String message;
+>    /*
+>     客户端如果调用 socket.close() 断开连接， 服务端这里的readline() 就会返回null,
+> 
+>     客户端如果意外中断，那么服务端这边会抛异常。
+>     */
+> 
+>     while ((message = bufferedReader.readLine())!=null) {
+>         System.out.println("客户端说：" + message);
+>     }
+> 
+> }
+> ```
+>
+> 发现：服务端虽然能够接收到多个客户端的连接，但是在同一时间仅能收到第一个客户端的消息，且只有当前一个的客户端关闭后，才会收到后一个客户端的消息。
+
+###  
+
+
+
+### day03 并发与多线程
+
 
 
 
