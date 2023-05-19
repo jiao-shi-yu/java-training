@@ -32,6 +32,35 @@ public class Server {
                 System.out.println("等待客户端连接……");
                 Socket socket = serverSocket.accept();
                 System.out.println("一个客户端连接了！");
+
+                // 启动一个线程，来与该客户端交互。
+                ClientHandler handler = new ClientHandler(socket);
+                Thread t = new Thread(handler);
+                t.start();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        Server server = new Server();
+        server.start();
+    }
+
+    /**
+     * 该线程用于与指定的客户端交互
+     */
+    private class ClientHandler implements Runnable {
+
+        private Socket socket;
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+        @Override
+        public void run() {
+            try {
                 InputStream inputStream = socket.getInputStream();
                 InputStreamReader isr = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(isr);
@@ -48,16 +77,9 @@ public class Server {
                 while ((message = bufferedReader.readLine())!=null) {
                     System.out.println("客户端说：" + message);
                 }
-
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        Server server = new Server();
-        server.start();
     }
 }

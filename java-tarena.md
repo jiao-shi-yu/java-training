@@ -5445,6 +5445,320 @@ ServerSocket(int port);
 
 
 
+#### 一、进程、线程与多线程
+
+**进程**：已经运行的一个程序，操作系统为其分配内存。
+
+**线程：**程序中单一的顺序执行流程。
+
+**多线程**：多个线程并发同步执行。
+
+
+
+
+
+#### 二、并发与并行
+
+**并发：**CPU 一次只能执行一条指令。 操作系统将时间分为多个时间片。微观上多个线程之间来回切换，每一线程都是走走停停的，宏观上像是同时执行的。
+
+**并行**：多核 CPU 同时执行，微观与宏观都是同时运行的。
+
+
+
+
+
+#### 三、多线程有什么好处
+
+- 同时处理多个任务，而互不干扰
+- 多线程更快。
+
+
+
+
+
+
+
+
+
+#### 四、Java中创建线程的方式
+
+##### A、继承`Thread`类，重写`run()`方法
+
+示例代码：
+
+```java
+package thread;
+
+public class ThreadDemo1 {
+    public static void main(String[] args) {
+        Thread thread1 = new MyThread1();
+        Thread thread2 = new MyThread2();
+
+        /*
+        注意：启动线程，调用的是start()方法，而非直接调用run()
+        线程调用start()方法后，该线程将会纳入线程调度器的统一管理中，当该线程获取到时间片段时，线程调度器会自动调用run()方法。
+         */
+        thread1.start();
+        thread2.start();
+
+    }
+}
+
+class MyThread1 extends Thread {
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("你是谁啊？");
+        }
+    }
+}
+
+class MyThread2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("我是查水表的！");
+        }
+    }
+}
+```
+
+###### 优缺点：
+
+**优点**：简单直接。
+
+**缺点**:
+
+- Java 是单继承的，继承了`Thread`类，就**无法继承其他类**，这就很不方便。
+- 定义线程的同时，使用`run() `方法定义任务，这就导致**线程与任务之间存在耦合关系，不利于线程的重用**。
+
+
+
+###### `run()`和`start()`方法
+
+启动线程，调用的是`start()`方法，而非直接调用`run()`
+线程调用`start()`方法后，该线程将会纳入线程调度器的统一管理中，当该线程获取到时间片段时，线程调度器会自动调用`run()`方法。
+
+> `start()`跟`run()`的区别？
+>
+> `start()`启动一个线程，不能被反复调用。启动线程后，就是多线程的，可以执行到一部分，再去执行别的线程的代码。
+>
+> `run()`跟普通的成员方法一样，是可以多次调用。单线程的，执行完所有方法体中的代码，才能执行别的代码。
+
+
+
+
+
+
+
+##### B、实现`Runnable`接口
+
+示例代码：
+
+```java
+package thread;
+
+public class ThreadDemo2 {
+    public static void main(String[] args) {
+        // 创建Runnable实例
+        Runnable runnable1 = new MyRunnable1();
+        Runnable runnable2 = new MyRunnable2();
+        // 使用Runnable实例子创建线程
+        Thread thread1 = new Thread(runnable1);
+        Thread thread2 = new Thread(runnable2);
+        // 启动线程
+        thread1.start();
+        thread2.start();
+    }
+}
+
+class MyRunnable1 implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("你是谁啊？");
+        }
+    }
+}
+
+class MyRunnable2 implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("我是查水表的！");
+        }
+    }
+}
+```
+
+
+
+
+
+#### 五、常用API
+
+###### `Thread currentThread()`返回当前线程的名字。
+
+```java
+package thread;
+
+/**
+ * Java中所有的代码，都是靠线程执行的，main()方法也不例外。
+ * JVM启动后会创建一条线程来执行main()方法，这条线程被取名为"main"，俗称：主线程。
+ * 我们自己创建的线程，也可以取名字，但通常默认值，格式为:"Thread-X"(X是一个数字，由系统分配）
+ */
+public class CurrentThreadDemo {
+    public static void main(String[] args) {
+        // 获取主线程
+        Thread main = Thread.currentThread();
+        System.out.println("主线程：" + main);
+        
+        dosome();
+        System.out.println("main方法执行完了," + main + "执行完毕了");
+    }
+
+    private static void dosome() {
+        Thread t = Thread.currentThread();
+        System.out.println("执行dosome方法的线程是" + t);
+    }
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+#### 六、继续聊天室案例
+
+###### 服务端创建单独的线程，与客服端通信
+
+思路：主线程，一直接受客户端连接，每连接到一个客户端后，都会创建一个线程，负责与该客户端通信。而主线程继续等待新的连接。
+
+负责与客户端通信的线程，起个名字叫`ClientHandler`.
+
+*Server.java*代码如下：
+
+```java
+package socket;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+/**
+ * 聊天室服务端
+ */
+public class Server {
+    /**
+     * "总机"
+     */
+    private ServerSocket serverSocket;
+    public Server() {
+        try {
+            System.out.println("正在启动服务端……");
+            serverSocket = new ServerSocket(8088);
+            System.out.println("服务端启动完毕！");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void start() {
+        try {
+
+            while (true) {
+
+                System.out.println("等待客户端连接……");
+                Socket socket = serverSocket.accept();
+                System.out.println("一个客户端连接了！");
+
+                // 启动一个线程，来与该客户端交互。
+                ClientHandler handler = new ClientHandler(socket);
+                Thread t = new Thread(handler);
+                t.start();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        Server server = new Server();
+        server.start();
+    }
+
+    /**
+     * 该线程用于与指定的客户端交互
+     */
+    private class ClientHandler implements Runnable {
+
+        private Socket socket;
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+        @Override
+        public void run() {
+            try {
+                InputStream inputStream = socket.getInputStream();
+                InputStreamReader isr = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(isr);
+
+
+
+                String message;
+               /*
+                客户端如果调用 socket.close() 断开连接， 服务端这里的readline() 就会返回null,
+
+                客户端如果意外中断，那么服务端这边会抛异常。
+                */
+
+                while ((message = bufferedReader.readLine())!=null) {
+                    System.out.println("客户端说：" + message);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+```
+
+
+
+###### 服务端给客户端回信
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
