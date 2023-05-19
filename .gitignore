@@ -3,3 +3,4 @@
 *.class
 java-tarena/JavaSE/target/classes/socket/Server.class
 java-tarena/JavaSE/target/classes/socket/Server.class
+.DS_Store
