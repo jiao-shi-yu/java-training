@@ -4917,11 +4917,11 @@ public class BufferedReaderDemo {
   + 如果一个段代码不会抛出某一类型的受查异常，而你捕获了该类型的受查异常。编译器也会报错。
 - 非受查异常：编译器不会进行检查。Error 和 RuntimeException 都是非受查异常。
   + 常见的 RuntimeException:
-    * ClassCastException
-    * IndexOutOfBoundsException
-    * NullPointerException
-    * IllegalArgumentException
-    * NumberFormatException
+    * IllegalArgumentException：抛出的异常表明向方法传递了一个不合法或不正确的参数
+    - NullPointerException：当应用程序试图在需要对象的地方使用 null 时，抛出该异常
+    - ArrayIndexOutOfBoundsException：当使用的数组下标超出数组允许范围时，抛出该异常
+    - ClassCastException：当试图将对象强制转换为不是实例的子类时，抛出该异常
+    - NumberFormatException：当应用程序试图将字符串转换成一种数值类型，但该字符串不能转换为适当格式时，抛出该异常。
 
 #### 三、异常的抛出与捕获
 
@@ -5307,11 +5307,90 @@ exception.IllegalAgeException: 年龄不合法
 
 
 
+### day 07 Sockets网络编程
+
+
+
+#### 一、相关背景知识介绍
+
+##### CS结构与BS结构
+
+###### CS: 客户端、服务器端。Client - Server
+
+###### BS: 浏览器端、服务器端。Browser - Server
+
+##### 通讯协议
+
+###### TCP：传输控制协议 (Transmission ⌃ Protocol), 是一种面向连接的、可靠的、基于字节流的传输层通信协议。
+
+###### UDP：用户数据报协议 (User Datagram Protocol), 更快，更简单，更高效的传输协议。会存在丢包风险。
+
+
+
+#### 二、Scokets网络编程
+
+##### Socket 套接字
+
+Socket 套接字，TCP/IP协议中，位于传输层和应用层之间的一个抽象层。他把传输层复杂的操作抽象为为几个简单的接口，供应用层调用。使用 Socket 可以与远端计算机进行通讯。
+
+Scoket 并不是Java的创造，Java只是对它作了支持。
+
+##### Socket类
+
+Socket 在`java.net`包下。
+
+###### Socket 构造方法:
+
+```java
+Socket(String host, int port);
+```
+
+- `String host`, 服务器的 IP 地址，通过 IP 地址可以找到服务器。`"localhost"`表示本地主机。
+- `int port`, 应用程序端口号，通过端口号可以找到服务器上的服务应用程序。端口号范围：`1`到`65535`.
+- 在实例化的时候就会尝试建立连接，连接成功则会实例化成功，连接失败则会抛出异常。
 
 
 
 
+###### Socket 的`getOutputStream()`方法
 
+通过 `socket` 获取输出流。这个**输出流**写出的字节会通过网络发送给远端计算机。
+
+###### Socket 的`void close()`方法
+
+关闭连接。
+
+
+###### Socket 的`getInputStream()`方法
+
+`InputStream getInputStream()`方法，用于读取远端计算机发送过来的数据。
+
+
+
+##### ServerSocket类
+
+ServerSocket 是运行在服务器端的，主要有两个作用：
+
+1. 向系统申请固定的服务端口。客户端Socket就是通过这个端口与服务器连接的。
+2. 监听服务端口。如果有一个客户端通过端口申请建立连接，服务器会立即创建一个 Socket。
+
+如果我们将 **Socket** 比喻为“电话”，那么 **ServerSocket** 相当于“总机”。
+
+###### ServerSocket 构造方法：
+
+```java
+ServerSocket(int port);
+```
+
+向服务器申请一个端口。如果申请的端口已经被占用，会抛出一个异常。
+
+###### ServerSocket 的`accept()`方法
+
+`Socket accept()`是一个阻塞方法，调用后等待客户端连接，直到一个客户端连接时，该方法会立即返回一个 Socket，通过这个 Socket 与客户端进行交互。多次调用该方法可以接受多个客户端的连接。
+
+
+
+> ifconfig
 
 
 
