@@ -55,8 +55,11 @@ public class Server {
     private class ClientHandler implements Runnable {
 
         private Socket socket;
+        private String host; // 客户端的地址信息
         public ClientHandler(Socket socket) {
             this.socket = socket;
+            // 通过socket获取远端计算机地址信息
+            host = socket.getInetAddress().getHostAddress();
         }
         @Override
         public void run() {
@@ -75,7 +78,7 @@ public class Server {
                 */
 
                 while ((message = bufferedReader.readLine())!=null) {
-                    System.out.println("客户端说：" + message);
+                    System.out.println(host + "说：" + message);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
