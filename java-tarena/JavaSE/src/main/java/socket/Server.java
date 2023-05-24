@@ -1,11 +1,9 @@
 package socket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * 聊天室服务端
@@ -15,6 +13,11 @@ public class Server {
      * "总机"
      */
     private ServerSocket serverSocket;
+
+    /**
+     * 该数组存放所有ClientHandler对应客户端的输出流，以便广播消息给所有客户端。
+     */
+    private PrintWriter[] allOut = {};
     public Server() {
         try {
             System.out.println("正在启动服务端……");
@@ -63,13 +66,27 @@ public class Server {
         }
         @Override
         public void run() {
+            PrintWriter printWriter = null;
             try {
                 InputStream inputStream = socket.getInputStream();
                 InputStreamReader isr = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(isr);
 
+                // 通过socket 获取输出流，用于给客户端回复消息
+                printWriter = new PrintWriter(
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        socket.getOutputStream(), "UTF-8"
+                                )
+                        ) , true
+                );
+                // 将该输出流存入共享数组,这步操作需要同步执行
+                synchronized (Server.this) {
+                    allOut = Arrays.copyOf(allOut, allOut.length + 1);
+                    allOut[allOut.length - 1] = printWriter;
+                }
 
-
+                sendMessage(host + "上线了，当前在线人数：" + allOut.length);
                 String message;
                /*
                 客户端如果调用 socket.close() 断开连接， 服务端这里的readline() 就会返回null,
@@ -79,9 +96,45 @@ public class Server {
 
                 while ((message = bufferedReader.readLine())!=null) {
                     System.out.println(host + "说：" + message);
+                    // 将消息回复给所有客户端
+                    sendMessage(host + "说:" + message);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+            } finally {
+                // 处理客户端断开连接后的操作
+
+                // 将当前客户端的输出流，从共享数组中删除
+                synchronized (Server.this) {
+                    for (int i = 0; i < allOut.length; i++) {
+                        if (allOut[i] == printWriter) {
+                            // 将最后一个元素赋值到当前位置
+                            allOut[i] = allOut[allOut.length-1];
+                            // 数组缩容
+                            allOut = Arrays.copyOf(allOut, allOut.length -1);
+                            // 目的达成，break
+                        }
+                    }
+                }
+                sendMessage(host + "下线了，当前在线人数：" + allOut.length);
+                try {
+                    // 与客户端断开连接，释放资源
+                    socket.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        /**
+         * 将指定的消息发送给所有客户端
+         * @param message
+         */
+        private void sendMessage(String message) {
+            synchronized (Server.this) {
+                for (int i = 0; i < allOut.length; i++ ) {
+                    allOut[i].println(message);
+                }
             }
         }
     }

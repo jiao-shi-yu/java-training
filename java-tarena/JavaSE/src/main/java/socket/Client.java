@@ -35,10 +35,17 @@ public class Client {
     public void start() {
 
         try {
+            // 启动ServerHandler
+            ServerHandler serverHandler = new ServerHandler();
+            Thread thread = new Thread(serverHandler);
+            thread.start();
+
             OutputStream out = socket.getOutputStream();
             OutputStreamWriter osw = new OutputStreamWriter(out, "UTF-8");
             BufferedWriter bw = new BufferedWriter(osw);
             PrintWriter pw = new PrintWriter(bw, true);
+
+
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 String line = scanner.nextLine();
@@ -46,6 +53,8 @@ public class Client {
                     break;
                 }
                 pw.println(line);
+
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,5 +71,27 @@ public class Client {
     public static void main(String[] args) {
         Client client = new Client();
         client.start();
+    }
+
+    /**
+     * 循环读取服务端发送的消息
+     */
+    private class ServerHandler implements Runnable {
+        @Override
+        public void run() {
+
+            // 通过socket 获取输入流，以读取服务端发送过来的消息
+            try {
+                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String message;
+                while ((message = br.readLine())!=null) {
+                    System.out.println(message);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 }

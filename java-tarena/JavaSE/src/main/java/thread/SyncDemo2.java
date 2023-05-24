@@ -31,6 +31,11 @@ public class SyncDemo2 {
 }
 
 class Shop {
+    /*
+
+    在成员方法上使用synchronized,那么同步监视器对象就是该方法所属对象，即：this.
+    public synchronized void buy() {}
+     */
     public void buy() {
         Thread thread = Thread.currentThread();
         try {
