@@ -3,7 +3,9 @@ package socket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * 聊天室服务端
@@ -17,7 +19,8 @@ public class Server {
     /**
      * 该数组存放所有ClientHandler对应客户端的输出流，以便广播消息给所有客户端。
      */
-    private PrintWriter[] allOut = {};
+//    private PrintWriter[] allOut = {};
+    Collection<PrintWriter> allOut = new ArrayList<>();
     public Server() {
         try {
             System.out.println("正在启动服务端……");
@@ -81,12 +84,17 @@ public class Server {
                         ) , true
                 );
                 // 将该输出流存入共享数组,这步操作需要同步执行
-                synchronized (Server.this) {
-                    allOut = Arrays.copyOf(allOut, allOut.length + 1);
-                    allOut[allOut.length - 1] = printWriter;
+//                synchronized (Server.this) {
+//                    allOut = Arrays.copyOf(allOut, allOut.length + 1);
+//                    allOut[allOut.length - 1] = printWriter;
+                /*
+                由于集合中增删元素并不会创建新的集合，所以集合是临界资源时，可以作为锁对象使用
+                 */
+                synchronized (allOut) {
+                    allOut.add(printWriter);
                 }
 
-                sendMessage(host + "上线了，当前在线人数：" + allOut.length);
+                sendMessage(host + "上线了，当前在线人数：" + allOut.size());
                 String message;
                /*
                 客户端如果调用 socket.close() 断开连接， 服务端这里的readline() 就会返回null,
@@ -105,18 +113,20 @@ public class Server {
                 // 处理客户端断开连接后的操作
 
                 // 将当前客户端的输出流，从共享数组中删除
-                synchronized (Server.this) {
-                    for (int i = 0; i < allOut.length; i++) {
-                        if (allOut[i] == printWriter) {
-                            // 将最后一个元素赋值到当前位置
-                            allOut[i] = allOut[allOut.length-1];
-                            // 数组缩容
-                            allOut = Arrays.copyOf(allOut, allOut.length -1);
-                            // 目的达成，break
-                        }
-                    }
+//                synchronized (Server.this) {
+//                    for (int i = 0; i < allOut.length; i++) {
+//                        if (allOut[i] == printWriter) {
+//                            // 将最后一个元素赋值到当前位置
+//                            allOut[i] = allOut[allOut.length-1];
+//                            // 数组缩容
+//                            allOut = Arrays.copyOf(allOut, allOut.length -1);
+//                            // 目的达成，break
+//                        }
+//                    }
+                synchronized (allOut) {
+                    allOut.remove(printWriter);
                 }
-                sendMessage(host + "下线了，当前在线人数：" + allOut.length);
+                sendMessage(host + "下线了，当前在线人数：" + allOut.size());
                 try {
                     // 与客户端断开连接，释放资源
                     socket.close();
@@ -131,9 +141,13 @@ public class Server {
          * @param message
          */
         private void sendMessage(String message) {
-            synchronized (Server.this) {
-                for (int i = 0; i < allOut.length; i++ ) {
-                    allOut[i].println(message);
+//            synchronized (Server.this) {
+//                for (int i = 0; i < allOut.length; i++ ) {
+//                    allOut[i].println(message);
+//                }
+            synchronized (allOut) {
+                for (PrintWriter printWriter: allOut) {
+                    printWriter.println(message);
                 }
             }
         }
