@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class HttpServletResponse {
     private Socket socket;
@@ -15,7 +17,7 @@ public class HttpServletResponse {
     private int statusCode = 200;
     private String statusReason = "OK";
     // 响应头相关信息
-    private Map
+    private Map<String,String> headers = new HashMap<>();
 
     // 响应正文相关信息
         // 响应正文对应实体文件
@@ -52,11 +54,18 @@ public class HttpServletResponse {
     }
 
     private void sendHeaders() throws IOException {
-        String line = "Content-Type: text/html";
-        println(line);
 
-        line = "Content-Length: " + entity.length();
-        println(line);
+        /*
+        遍历headers,发送每行响应头
+         */
+        Set<Map.Entry<String,String>> entrySet = headers.entrySet();
+        for(Map.Entry<String,String> entry : entrySet) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            String line = key + ": " + value;
+            println(line);
+        }
+
 
         // 发送单独的CRLF,表示响应头发送完毕
         println("");
@@ -105,5 +114,14 @@ public class HttpServletResponse {
 
     public void setEntity(File entity) {
         this.entity = entity;
+    }
+
+    /**
+     * 添加一个要发送的响应头
+     * @param name
+     * @param value
+     */
+    public void addHeader(String name, String value) {
+        this.headers.put(name, value);
     }
 }

@@ -41,16 +41,24 @@ public class DispatcherServlet {
 
         // 如果定位是文件，则 200 OK
         if (file.isFile()) {
-
-
+            response.setEntity(file);
+            // 添加两个响应头，Content-Type和Content-Length
+            response.addHeader("Content-Type", "text/html");
+            response.addHeader("Content-Length",String.valueOf(file.length()));
         } else { // 不是文件,要么不存在，要么是目录，则 404
 
             file = new File("./webapps/root/404.html");
             response.setStatusCode(404);
             response.setStatusReason("Not Found");
+            response.setEntity(file);
+
+            response.addHeader("Content-Type", "text-html");
+            response.addHeader("Content-Length", String.valueOf(file.length()));
+
         }
 
-        response.setEntity(file);
+        response.addHeader("Server", "WebServer");
+
 
 
     }
