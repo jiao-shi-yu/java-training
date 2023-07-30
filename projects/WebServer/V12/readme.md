@@ -1,0 +1,2 @@
+V12
+在DispatcherServlet中，根据文件后缀名设置Content-Type并响应出去。
